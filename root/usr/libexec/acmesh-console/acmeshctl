@@ -11,6 +11,7 @@ LIB_DIR="${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}"
 . "$LIB_DIR/ssh.sh"
 . "$LIB_DIR/config.sh"
 . "$LIB_DIR/request_payload.sh"
+. "$LIB_DIR/authorization.sh"
 
 cmd="${1:-}"
 shift || true
