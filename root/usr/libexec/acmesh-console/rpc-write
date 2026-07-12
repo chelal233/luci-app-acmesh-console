@@ -1,0 +1,62 @@
+#!/bin/sh
+set -eu
+
+LIB_DIR="${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}"
+. "$LIB_DIR/request.sh"
+
+ACMESHCTL="${ACMESHCTL:-/usr/libexec/acmesh-console/acmeshctl}"
+method="${1:-}"
+shift || true
+
+case "$method" in
+	config_save) command=config-save ;;
+	import_preview) command=import-preview ;;
+	import_apply) command=import-apply ;;
+	secret_export) command=secret-export ;;
+	issue) command=issue ;;
+	renew) command=renew ;;
+	deploy_run) command=deploy-run ;;
+	deploy_test) command=deploy-test ;;
+	dns_test) command=dns-test ;;
+	core_install) command=core-install ;;
+	core_upgrade) command=core-upgrade ;;
+	ssh_key_ensure) command=ssh-key-ensure ;;
+	ssh_hostkey_probe) command=ssh-hostkey-probe ;;
+	ssh_hostkey_confirm) command=ssh-hostkey-confirm ;;
+	authorization_execute) command=authorization-execute ;;
+	authorization_revoke) command=authorization-revoke ;;
+	authorization_revoke_all) command=authorization-revoke-all ;;
+	certificate_revoke) command=certificate-revoke ;;
+	certificate_remove) command=certificate-remove ;;
+	profile_delete) command=profile-delete ;;
+	*)
+		printf '{"ok":false,"error":"unsupported method"}\n'
+		exit 2
+		;;
+esac
+
+request_id=""
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--request-id)
+			[ "$#" -ge 2 ] || {
+				printf '{"ok":false,"error":"unsupported argument"}\n'
+				exit 2
+			}
+			request_id="$2"
+			shift 2
+			;;
+		*)
+			printf '{"ok":false,"error":"unsupported argument"}\n'
+			exit 2
+			;;
+	esac
+done
+request_file="$(acmesh_request_consume "$request_id")" || {
+	rc=$?
+	printf '%s\n' "$request_file"
+	exit "$rc"
+}
+trap 'rm -f "$request_file"' HUP INT TERM EXIT
+
+"$ACMESHCTL" "$command" --request-file "$request_file"

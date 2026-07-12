@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -f /www/luci-static/resources/view/acmesh/operations.js
+mkdir -p /etc/acmesh-console /etc/acmesh-console/ssh
+chmod 700 /etc/acmesh-console /etc/acmesh-console/ssh
+exit 0

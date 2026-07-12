@@ -1,0 +1,1102 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-acmesh-console\n"
+"PO-Revision-Date: 2026-07-08 00:00+0800\n"
+"Last-Translator: acmesh-console maintainers\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "acme.sh Console"
+msgstr "acme.sh 控制台"
+
+msgid "Certificates"
+msgstr "证书"
+
+msgid "Operations"
+msgstr "操作"
+
+msgid "Logs"
+msgstr "日志"
+
+msgid "Core & Defaults"
+msgstr "核心与默认值"
+
+msgid "Default account email"
+msgstr "默认账户邮箱"
+
+msgid "Global Test Mode"
+msgstr "全局测试模式"
+
+msgid "Enable by default"
+msgstr "默认启用"
+
+msgid "ACME home"
+msgstr "ACME 主目录"
+
+msgid "Core tag candidates"
+msgstr "核心版本候选"
+
+msgid "Save defaults"
+msgstr "保存默认值"
+
+msgid "Install selected tag"
+msgstr "安装选中版本"
+
+msgid "Upgrade selected tag"
+msgstr "升级到选中版本"
+
+msgid "Installed"
+msgstr "已安装"
+
+msgid "Script"
+msgstr "脚本"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "Accounts"
+msgstr "账户"
+
+msgid "Account profiles"
+msgstr "账户配置"
+
+msgid "Issue Profiles"
+msgstr "签发配置"
+
+msgid "Deploy Profiles"
+msgstr "部署配置"
+
+msgid "Issue profiles"
+msgstr "签发配置"
+
+msgid "Deploy profiles"
+msgstr "部署配置"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Domain"
+msgstr "域名"
+
+msgid "Account"
+msgstr "账户"
+
+msgid "Deploy"
+msgstr "部署"
+
+msgid "Validation"
+msgstr "验证方式"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Certificate source"
+msgstr "证书来源"
+
+msgid "Target"
+msgstr "目标"
+
+msgid "Reload command"
+msgstr "重载命令"
+
+msgid "Run"
+msgstr "执行"
+
+msgid "DNS Test"
+msgstr "DNS 测试"
+
+msgid "Test"
+msgstr "测试"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Ignore"
+msgstr "忽略"
+
+msgid "Save account"
+msgstr "保存账户"
+
+msgid "Save issue profile"
+msgstr "保存签发配置"
+
+msgid "Save deploy profile"
+msgstr "保存部署配置"
+
+msgid "Task output"
+msgstr "任务输出"
+
+msgid "Summary"
+msgstr "摘要"
+
+msgid "Creating task"
+msgstr "正在创建任务"
+
+msgid "Issue succeeded; starting deploy profile"
+msgstr "证书签发成功，开始执行部署配置"
+
+msgid "The CA rejected the account email. Replace example.com with a real mailbox in the account profile or defaults."
+msgstr "CA 拒绝了账户邮箱。请在账户配置或默认值中把 example.com 换成真实邮箱。"
+
+msgid "The DNS provider rejected the TXT record. Check that the domain belongs to this DNS account and that the selected DNS API credentials match the provider."
+msgstr "DNS 服务商拒绝了 TXT 记录。请检查域名是否属于该 DNS 账户，并确认所选 DNS API 凭据与服务商匹配。"
+
+msgid "The DNS provider failed to create the ACME TXT record. Recheck DNS API credentials, zone ownership, and provider-specific permissions."
+msgstr "DNS 服务商未能创建 ACME TXT 记录。请复查 DNS API 凭据、域名归属和服务商权限。"
+
+msgid "OpenSSL is missing on the router. Install openssl-util before installing or upgrading acme.sh."
+msgstr "路由器缺少 OpenSSL。安装或升级 acme.sh 前请先安装 openssl-util。"
+
+msgid "acme.sh is not installed in the configured ACME home. Install the selected core tag first."
+msgstr "配置的 ACME 主目录中没有安装 acme.sh。请先安装选中的核心版本。"
+
+msgid "The selected CA value is not supported by the backend. Choose a known CA profile or a valid ACME directory URL."
+msgstr "后端不支持当前 CA 值。请选择已知 CA 配置或有效的 ACME 目录 URL。"
+
+msgid "No entries"
+msgstr "暂无条目"
+
+msgid "No account profiles"
+msgstr "暂无账户配置"
+
+msgid "No issue profiles"
+msgstr "暂无签发配置"
+
+msgid "Imported"
+msgstr "已导入"
+
+msgid "Imported issue profiles"
+msgstr "已导入签发配置"
+
+msgid "No deploy profiles"
+msgstr "暂无部署配置"
+
+msgid "No deploy profile"
+msgstr "不使用部署配置"
+
+msgid "No account profile"
+msgstr "暂无账户配置"
+
+msgid "Email overlay"
+msgstr "邮箱覆盖"
+
+msgid "Effective email"
+msgstr "实际邮箱"
+
+msgid "inherit default"
+msgstr "继承默认值"
+
+msgid "CA / environment"
+msgstr "CA / 环境"
+
+msgid "Account email overlay"
+msgstr "账户邮箱覆盖"
+
+msgid "Test mode policy"
+msgstr "测试模式策略"
+
+msgid "Inherit Global Test Mode"
+msgstr "继承全局测试模式"
+
+msgid "Always Test Mode"
+msgstr "始终测试模式"
+
+msgid "Always Real Mode"
+msgstr "始终真实模式"
+
+msgid "DNS provider"
+msgstr "DNS 服务商"
+
+msgid "Custom DNS API"
+msgstr "自定义 DNS API"
+
+msgid "Official DNS API filter"
+msgstr "官方 DNS API 筛选"
+
+msgid "Official DNS API candidates"
+msgstr "官方 DNS API 候选"
+
+msgid "Select official DNS API"
+msgstr "选择官方 DNS API"
+
+msgid "Credential mode"
+msgstr "凭据模式"
+
+msgid "Custom credential env"
+msgstr "自定义凭据变量"
+
+msgid "Custom credential value"
+msgstr "自定义凭据值"
+
+msgid "Custom credentials"
+msgstr "自定义凭据"
+
+msgid "Missing DNS credentials"
+msgstr "缺少 DNS 凭据"
+
+msgid "Domain is required"
+msgstr "必须填写域名"
+
+msgid "Issued certificate"
+msgstr "已签发证书"
+
+msgid "Local certificate files"
+msgstr "本地证书文件"
+
+msgid "Paste PEM content"
+msgstr "粘贴 PEM 内容"
+
+msgid "Use issued certificate"
+msgstr "使用已签发证书"
+
+msgid "Use local certificate files"
+msgstr "使用本地证书文件"
+
+msgid "Certificate domain"
+msgstr "证书域名"
+
+msgid "Source key file"
+msgstr "源私钥文件"
+
+msgid "Source fullchain file"
+msgstr "源完整证书链文件"
+
+msgid "Private key PEM"
+msgstr "私钥 PEM"
+
+msgid "Fullchain PEM"
+msgstr "完整证书链 PEM"
+
+msgid "SSH host"
+msgstr "SSH 主机"
+
+msgid "SSH user"
+msgstr "SSH 用户"
+
+msgid "SSH port"
+msgstr "SSH 端口"
+
+msgid "SSH private key"
+msgstr "SSH 私钥"
+
+msgid "Key file"
+msgstr "私钥文件"
+
+msgid "Fullchain file"
+msgstr "完整证书链文件"
+
+msgid "Local key file"
+msgstr "本地私钥文件"
+
+msgid "Local fullchain file"
+msgstr "本地完整证书链文件"
+
+msgid "Remote key file"
+msgstr "远端私钥文件"
+
+msgid "Remote fullchain file"
+msgstr "远端完整证书链文件"
+
+msgid "Local install"
+msgstr "本地安装"
+
+msgid "Remote SSH"
+msgstr "远程 SSH"
+
+msgid "Cloudflare"
+msgstr "Cloudflare"
+
+msgid "Token"
+msgstr "令牌"
+
+msgid "Global Key"
+msgstr "全局密钥"
+
+msgid "Cloudflare API Token"
+msgstr "Cloudflare API 令牌"
+
+msgid "Cloudflare Zone ID"
+msgstr "Cloudflare 区域 ID"
+
+msgid "Cloudflare Account ID"
+msgstr "Cloudflare 账户 ID"
+
+msgid "Cloudflare Email"
+msgstr "Cloudflare 邮箱"
+
+msgid "Cloudflare Global API Key"
+msgstr "Cloudflare 全局 API 密钥"
+
+msgid "Aliyun"
+msgstr "阿里云"
+
+msgid "AccessKey"
+msgstr "AccessKey"
+
+msgid "Aliyun AccessKey ID"
+msgstr "阿里云 AccessKey ID"
+
+msgid "Aliyun AccessKey Secret"
+msgstr "阿里云 AccessKey Secret"
+
+msgid "DNSPod.cn"
+msgstr "DNSPod.cn"
+
+msgid "DNSPod ID"
+msgstr "DNSPod ID"
+
+msgid "DNSPod Token"
+msgstr "DNSPod 令牌"
+
+msgid "Tencent Cloud DNSPod"
+msgstr "腾讯云 DNSPod"
+
+msgid "SecretId / SecretKey"
+msgstr "SecretId / SecretKey"
+
+msgid "Tencent SecretId"
+msgstr "腾讯云 SecretId"
+
+msgid "Tencent SecretKey"
+msgstr "腾讯云 SecretKey"
+
+msgid "DuckDNS"
+msgstr "DuckDNS"
+
+msgid "DuckDNS Token"
+msgstr "DuckDNS 令牌"
+
+msgid "dynv6"
+msgstr "dynv6"
+
+msgid "dynv6 Token"
+msgstr "dynv6 令牌"
+
+msgid "SSH Key"
+msgstr "SSH 密钥"
+
+msgid "dynv6 SSH private key path"
+msgstr "dynv6 SSH 私钥路径"
+
+msgid "GoDaddy"
+msgstr "GoDaddy"
+
+msgid "Key / Secret"
+msgstr "Key / Secret"
+
+msgid "GoDaddy Key"
+msgstr "GoDaddy Key"
+
+msgid "GoDaddy Secret"
+msgstr "GoDaddy Secret"
+
+msgid "Amazon Route 53"
+msgstr "Amazon Route 53"
+
+msgid "Access Key"
+msgstr "Access Key"
+
+msgid "AWS Access Key ID"
+msgstr "AWS Access Key ID"
+
+msgid "AWS Secret Access Key"
+msgstr "AWS Secret Access Key"
+
+msgid "AWS DNS slow rate"
+msgstr "AWS DNS 慢速模式"
+
+msgid "Baidu Cloud DNS"
+msgstr "百度云 DNS"
+
+msgid "Baidu Access Key ID"
+msgstr "百度云 Access Key ID"
+
+msgid "Baidu Secret Access Key"
+msgstr "百度云 Secret Access Key"
+
+msgid "Baidu API preference"
+msgstr "百度云 API 偏好"
+
+msgid "Baidu DNS view"
+msgstr "百度云 DNS 线路视图"
+
+msgid "Baidu DNS line"
+msgstr "百度云 DNS 线路"
+
+msgid "Azure DNS"
+msgstr "Azure DNS"
+
+msgid "Service Principal"
+msgstr "服务主体"
+
+msgid "Azure Subscription ID"
+msgstr "Azure 订阅 ID"
+
+msgid "Azure Tenant ID"
+msgstr "Azure 租户 ID"
+
+msgid "Azure App ID"
+msgstr "Azure 应用 ID"
+
+msgid "Azure Client Secret"
+msgstr "Azure 客户端密钥"
+
+msgid "Bearer Token"
+msgstr "Bearer 令牌"
+
+msgid "Azure Bearer Token"
+msgstr "Azure Bearer 令牌"
+
+msgid "Managed Identity"
+msgstr "托管身份"
+
+msgid "Use Azure Managed Identity"
+msgstr "使用 Azure 托管身份"
+
+msgid "ClouDNS"
+msgstr "ClouDNS"
+
+msgid "Regular Auth ID"
+msgstr "常规 Auth ID"
+
+msgid "ClouDNS Auth ID"
+msgstr "ClouDNS Auth ID"
+
+msgid "ClouDNS Auth Password"
+msgstr "ClouDNS Auth 密码"
+
+msgid "Sub Auth ID"
+msgstr "子账户 Auth ID"
+
+msgid "ClouDNS Sub Auth ID"
+msgstr "ClouDNS 子账户 Auth ID"
+
+msgid "Hurricane Electric"
+msgstr "Hurricane Electric"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "HE Username"
+msgstr "HE 用户名"
+
+msgid "HE Password"
+msgstr "HE 密码"
+
+msgid "Huawei Cloud DNS"
+msgstr "华为云 DNS"
+
+msgid "Username / Password"
+msgstr "用户名 / 密码"
+
+msgid "Huawei Cloud Username"
+msgstr "华为云用户名"
+
+msgid "Huawei Cloud Password"
+msgstr "华为云密码"
+
+msgid "Huawei Cloud Domain Name"
+msgstr "华为云 DomainName"
+
+msgid "Huawei Cloud Region"
+msgstr "华为云区域"
+
+msgid "Gcore DNS"
+msgstr "Gcore DNS"
+
+msgid "Gcore API Key"
+msgstr "Gcore API Key"
+
+msgid "Namecheap"
+msgstr "Namecheap"
+
+msgid "API Key"
+msgstr "API Key"
+
+msgid "Namecheap Username"
+msgstr "Namecheap 用户名"
+
+msgid "Namecheap API Key"
+msgstr "Namecheap API Key"
+
+msgid "Namecheap Source IP"
+msgstr "Namecheap 来源 IP"
+
+msgid "DNS.LA"
+msgstr "DNS.LA"
+
+msgid "ID / Secret"
+msgstr "ID / Secret"
+
+msgid "DNS.LA API ID"
+msgstr "DNS.LA API ID"
+
+msgid "DNS.LA API Secret"
+msgstr "DNS.LA API Secret"
+
+msgid "DNS.LA API Token"
+msgstr "DNS.LA API Token"
+
+msgid "Name.com"
+msgstr "Name.com"
+
+msgid "API Token"
+msgstr "API Token"
+
+msgid "Name.com Username"
+msgstr "Name.com 用户名"
+
+msgid "Name.com API Token"
+msgstr "Name.com API Token"
+
+msgid "NameSilo"
+msgstr "NameSilo"
+
+msgid "NameSilo API Key"
+msgstr "NameSilo API Key"
+
+msgid "IBM NS1 Connect"
+msgstr "IBM NS1 Connect"
+
+msgid "NS1 API Key"
+msgstr "NS1 API Key"
+
+msgid "Porkbun"
+msgstr "Porkbun"
+
+msgid "Porkbun API Key"
+msgstr "Porkbun API Key"
+
+msgid "Porkbun Secret API Key"
+msgstr "Porkbun Secret API Key"
+
+msgid "Volcengine DNS"
+msgstr "火山引擎 DNS"
+
+msgid "Volcengine Access Key ID"
+msgstr "火山引擎 Access Key ID"
+
+msgid "Volcengine Secret Access Key"
+msgstr "火山引擎 Secret Access Key"
+
+msgid "Volcengine Session Token"
+msgstr "火山引擎 Session Token"
+
+msgid "Spaceship"
+msgstr "Spaceship"
+
+msgid "Spaceship API Key"
+msgstr "Spaceship API Key"
+
+msgid "Spaceship API Secret"
+msgstr "Spaceship API Secret"
+
+msgid "Spaceship root domain"
+msgstr "Spaceship 根域名"
+
+msgid "Vercel"
+msgstr "Vercel"
+
+msgid "Vercel API Token"
+msgstr "Vercel API Token"
+
+msgid "Linode"
+msgstr "Linode"
+
+msgid "Linode API Key"
+msgstr "Linode API Key"
+
+msgid "DigitalOcean"
+msgstr "DigitalOcean"
+
+msgid "DigitalOcean API Token"
+msgstr "DigitalOcean API 令牌"
+
+msgid "Google Cloud DNS"
+msgstr "Google Cloud DNS"
+
+msgid "gcloud"
+msgstr "gcloud"
+
+msgid "gcloud active config"
+msgstr "gcloud 当前配置"
+
+msgid "Zonomi"
+msgstr "Zonomi"
+
+msgid "Zonomi API Key"
+msgstr "Zonomi API Key"
+
+msgid "Invalid backend response"
+msgstr "后端响应无效"
+
+msgid "Unable to save config"
+msgstr "无法保存配置"
+
+msgid "Unable to create task"
+msgstr "无法创建任务"
+
+msgid "Task Logs"
+msgstr "任务日志"
+
+msgid "View task"
+msgstr "查看任务"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Task ID"
+msgstr "任务 ID"
+
+msgid "Operation"
+msgstr "操作"
+
+msgid "Stage"
+msgstr "阶段"
+
+msgid "Exit"
+msgstr "退出码"
+
+msgid "No tasks found"
+msgstr "未找到任务"
+
+msgid "Loading task"
+msgstr "正在加载任务"
+
+msgid "Back to tasks"
+msgstr "返回任务列表"
+
+msgid "acme.sh home"
+msgstr "acme.sh 主目录"
+
+msgid "Core script"
+msgstr "核心脚本"
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Core tag"
+msgstr "核心版本"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Real"
+msgstr "真实"
+
+msgid "OpenSSL"
+msgstr "OpenSSL"
+
+msgid "Ready"
+msgstr "就绪"
+
+msgid "Missing"
+msgstr "缺失"
+
+msgid "View certificate"
+msgstr "查看证书"
+
+msgid "Renew"
+msgstr "续期"
+
+msgid "Import history"
+msgstr "导入历史"
+
+msgid "Key type"
+msgstr "密钥类型"
+
+msgid "Primary"
+msgstr "主域名"
+
+msgid "SAN"
+msgstr "备用名称"
+
+msgid "Config"
+msgstr "配置"
+
+msgid "No certificates found"
+msgstr "未找到证书"
+
+msgid "Back to certificates"
+msgstr "返回证书列表"
+
+msgid "Field"
+msgstr "字段"
+
+msgid "Value"
+msgstr "值"
+
+msgid "No certificate details"
+msgstr "没有证书详情"
+
+msgid "Native variables"
+msgstr "原生变量"
+
+msgid "Last action"
+msgstr "最近操作"
+
+msgid "Missing openssl. Install it first: apk add openssl-util, or opkg update && opkg install openssl-util."
+msgstr "缺少 openssl。请先安装：apk add openssl-util，或 opkg update && opkg install openssl-util。"
+
+msgid "Missing downloader. Install curl or wget before installing acme.sh."
+msgstr "缺少下载工具。安装 acme.sh 前请先安装 curl 或 wget。"
+
+msgid "Unable to create install task"
+msgstr "无法创建安装任务"
+
+msgid "Unable to create upgrade task"
+msgstr "无法创建升级任务"
+
+msgid "acme.sh Core"
+msgstr "acme.sh 核心"
+
+msgid "Detect core"
+msgstr "检测核心"
+
+msgid "Home"
+msgstr "主目录"
+
+msgid "Downloader"
+msgstr "下载工具"
+
+msgid "Account email"
+msgstr "账户邮箱"
+
+msgid "acme.sh tag"
+msgstr "acme.sh 标签"
+
+msgid "Test mode"
+msgstr "测试模式"
+
+msgid "Install core"
+msgstr "安装核心"
+
+msgid "Upgrade core"
+msgstr "升级核心"
+
+msgid "Core status"
+msgstr "核心状态"
+
+msgid "Task"
+msgstr "任务"
+
+msgid "Unable to parse acme.sh Console status output"
+msgstr "无法解析 acme.sh Console 状态输出"
+
+msgid "Importing acme.sh history"
+msgstr "正在导入 acme.sh 历史"
+
+msgid "Unable to create import task"
+msgstr "无法创建导入任务"
+
+msgid "Issue certificate"
+msgstr "签发证书"
+
+msgid "Backend"
+msgstr "后端"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "No certificates found in acme.sh home."
+msgstr "acme.sh 主目录中没有找到证书。"
+
+msgid "Unable to create deploy test task"
+msgstr "无法创建部署测试任务"
+
+msgid "Generating SSH key"
+msgstr "正在生成 SSH 密钥"
+
+msgid "Unable to generate SSH key"
+msgstr "无法生成 SSH 密钥"
+
+msgid "Public key copied"
+msgstr "公钥已复制"
+
+msgid "Unable to create SSH test task"
+msgstr "无法创建 SSH 测试任务"
+
+msgid "Deploy & Post-Action"
+msgstr "部署与后置动作"
+
+msgid "Cert file"
+msgstr "证书文件"
+
+msgid "CA file"
+msgstr "CA 文件"
+
+msgid "Preview install-cert"
+msgstr "预览 install-cert"
+
+msgid "Run deploy test"
+msgstr "运行部署测试"
+
+msgid "Target host"
+msgstr "目标主机"
+
+msgid "Private key path"
+msgstr "私钥路径"
+
+msgid "Remote key path"
+msgstr "远程私钥路径"
+
+msgid "Remote fullchain path"
+msgstr "远程 fullchain 路径"
+
+msgid "Remote reload command"
+msgstr "远程重载命令"
+
+msgid "Generate SSH key"
+msgstr "生成 SSH 密钥"
+
+msgid "Copy public key"
+msgstr "复制公钥"
+
+msgid "Preview SSH deploy"
+msgstr "预览 SSH 部署"
+
+msgid "Test SSH connection"
+msgstr "测试 SSH 连接"
+
+msgid "Public key"
+msgstr "公钥"
+
+msgid "Custom dns_xxx"
+msgstr "自定义 dns_xxx"
+
+msgid "Issue flow"
+msgstr "签发流程"
+
+msgid "Compose"
+msgstr "编排"
+
+msgid "Preview"
+msgstr "预览"
+
+msgid "Result"
+msgstr "结果"
+
+msgid "Unable to create issue task"
+msgstr "无法创建签发任务"
+
+msgid "Issue task created"
+msgstr "签发任务已创建"
+
+msgid "Issue Certificate"
+msgstr "签发证书"
+
+msgid "Custom ACME server"
+msgstr "自定义 ACME 服务器"
+
+msgid "Validation method"
+msgstr "验证方式"
+
+msgid "DNS credentials"
+msgstr "DNS 凭据"
+
+msgid "Webroot"
+msgstr "Webroot 目录"
+
+msgid "Listen port"
+msgstr "监听端口"
+
+msgid "Preview command"
+msgstr "预览命令"
+
+msgid "Command preview"
+msgstr "命令预览"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "CA"
+msgstr "CA"
+
+msgid "Edit account"
+msgstr "编辑账户"
+
+msgid "new"
+msgstr "新建"
+
+msgid "secret"
+msgstr "密钥"
+
+msgid "Edit issue profile"
+msgstr "编辑签发配置"
+
+msgid "Account profile"
+msgstr "账户配置"
+
+msgid "Deploy profile"
+msgstr "部署配置"
+
+msgid "Edit deploy profile"
+msgstr "编辑部署配置"
+
+msgid "Settings & Diagnostics"
+msgstr "设置与诊断"
+
+msgid "Package manager"
+msgstr "包管理器"
+
+msgid "Account config"
+msgstr "账户配置文件"
+
+msgid "Found"
+msgstr "已找到"
+
+msgid "Detect runtime"
+msgstr "检测运行环境"
+
+msgid "Runtime JSON"
+msgstr "运行环境 JSON"
+
+msgid "Missing deploy fields"
+msgstr "缺少部署字段"
+
+msgid "Account email is required for real mode"
+msgstr "真实模式必须填写账户邮箱"
+
+msgid "Inherit default"
+msgstr "继承默认"
+
+msgid "Override"
+msgstr "覆盖"
+
+msgid "Effective configuration"
+msgstr "有效配置"
+
+msgid "Account email source"
+msgstr "账户邮箱来源"
+
+msgid "Resolved account email"
+msgstr "解析后的账户邮箱"
+
+msgid "Resolved test mode"
+msgstr "解析后的测试模式"
+
+msgid "Resolved deploy profile"
+msgstr "解析后的部署配置"
+
+msgid "Resolved target"
+msgstr "解析后的目标"
+
+msgid "Resolved source"
+msgstr "解析后的来源"
+
+msgid "Resolved reload command"
+msgstr "解析后的重载命令"
+
+msgid "Core version"
+msgstr "核心版本"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Current core version"
+msgstr "当前核心版本"
+
+msgid "Select deploy profile"
+msgstr "选择部署配置"
+
+msgid "AWS Session Token"
+msgstr "AWS 会话令牌"
+
+msgid "Certificate key type"
+msgstr "证书密钥类型"
+
+msgid "Global test mode"
+msgstr "全局测试模式"
+
+msgid "disabled"
+msgstr "已关闭"
+
+msgid "enabled"
+msgstr "已启用"
+
+msgid "Invalid JSON"
+msgstr "JSON 无效"
+
+msgid "Configuration JSON must be an object"
+msgstr "配置 JSON 必须是对象"
+
+msgid "Configuration global section must be an object"
+msgstr "配置 global 段必须是对象"
+
+msgid "Account profiles must be an array"
+msgstr "账户配置必须是数组"
+
+msgid "Issue profiles must be an array"
+msgstr "签发配置必须是数组"
+
+msgid "Deploy profiles must be an array"
+msgstr "部署配置必须是数组"
+
+msgid "Paste configuration JSON"
+msgstr "粘贴配置 JSON"
+
+msgid "No import selected"
+msgstr "尚未选择导入内容"
+
+msgid "Imported configuration summary"
+msgstr "导入配置摘要"
+
+msgid "Unable to read selected file"
+msgstr "无法读取所选文件"
+
+msgid "Configuration migration"
+msgstr "配置迁移"
+
+msgid "This export contains sensitive DNS credentials and certificate material."
+msgstr "导出内容包含敏感 DNS 凭据和证书材料。"
+
+msgid "Export configuration"
+msgstr "导出配置"
+
+msgid "Download a full migration JSON for server changes, reinstallations, or version upgrades."
+msgstr "下载完整迁移 JSON，用于切换服务器、重装或版本升级。"
+
+msgid "Import configuration"
+msgstr "导入配置"
+
+msgid "Configuration file"
+msgstr "配置文件"
+
+msgid "Preview import"
+msgstr "预览导入"
+
+msgid "Configuration imported"
+msgstr "配置已导入"
+
+msgid "Overwrite current configuration"
+msgstr "覆盖当前配置"
+
+msgid "The SSH private key is in OpenSSH format, but this router is using Dropbear. Convert it temporarily and retry the deployment."
+msgstr "SSH 私钥是 OpenSSH 格式，但当前路由器使用 Dropbear。请临时转换后重试部署。"
+
+msgid "Convert SSH key and retry deployment?"
+msgstr "转换 SSH 私钥并重试部署？"
+
+msgid "The converted key will be used only for this deployment and deleted afterwards."
+msgstr "转换后的私钥只会用于本次部署，执行结束后会自动删除。"
+
+msgid "Remote sudo requires passwordless sudo. Configure NOPASSWD for the deploy user or deploy as root."
+msgstr "远端 sudo 需要免密权限。请为部署用户配置 NOPASSWD，或改用 root 用户部署。"

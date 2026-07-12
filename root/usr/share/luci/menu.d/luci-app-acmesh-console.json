@@ -1,0 +1,37 @@
+{
+  "admin/services/acmesh": {
+    "title": "acme.sh Console",
+    "order": 50,
+    "action": {
+      "type": "alias",
+      "path": "admin/services/acmesh/certificates"
+    },
+    "depends": {
+      "acl": [ "luci-app-acmesh-console" ]
+    }
+  },
+  "admin/services/acmesh/certificates": {
+    "title": "Certificates",
+    "order": 10,
+    "action": {
+      "type": "view",
+      "path": "acmesh/certificates_v2"
+    }
+  },
+  "admin/services/acmesh/operations": {
+    "title": "Operations",
+    "order": 20,
+    "action": {
+      "type": "view",
+      "path": "acmesh/operations_v2"
+    }
+  },
+  "admin/services/acmesh/logs": {
+    "title": "Logs",
+    "order": 30,
+    "action": {
+      "type": "view",
+      "path": "acmesh/logs"
+    }
+  }
+}

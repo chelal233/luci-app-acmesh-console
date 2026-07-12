@@ -1,0 +1,9 @@
+config acmesh-console 'main'
+	# Bootstrap defaults only. Runtime account, issue and deploy entries are stored in /etc/acmesh-console/config.json.
+	option home '/etc/acme'
+	option default_account_email ''
+	option test_mode '1'
+	option core_tag 'v3.1.4'
+	option advanced '0'
+	option task_log_dir '/var/log/acmesh-console/tasks'
+	option task_state_dir '/var/run/acmesh-console/tasks'

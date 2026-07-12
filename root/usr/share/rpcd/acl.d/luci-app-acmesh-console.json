@@ -1,0 +1,22 @@
+{
+  "luci-app-acmesh-console": {
+    "description": "Grant access to acme.sh Console",
+    "read": {
+      "file": {
+        "/usr/libexec/acmesh-console/rpc-read": [ "exec" ]
+      },
+      "ubus": {
+        "file": [ "exec" ]
+      }
+    },
+    "write": {
+      "file": {
+        "/var/run/acmesh-console/requests": [ "write", "remove" ],
+        "/usr/libexec/acmesh-console/rpc-write": [ "exec" ]
+      },
+      "ubus": {
+        "file": [ "write", "remove", "exec" ]
+      }
+    }
+  }
+}
