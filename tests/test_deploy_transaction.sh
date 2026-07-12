@@ -71,6 +71,9 @@ run_profile_collision_preflight() (
 		root-key) key_target=/../../; cert_target="$case_root/cert.pem" ;;
 		root-cert) key_target="$case_root/key.pem"; cert_target=/./../ ;;
 	esac
+	case "$case_name" in
+		symlink-*) [ -L "$case_root/link" ] || { printf '%s\n' "test_deploy_transaction: SKIP $case_name (host lacks POSIX directory symlinks)" >&2; return 0; } ;;
+	esac
 	lock_marker="$case_root/lock-called"
 	guard_marker="$case_root/guard-called"
 	upload_marker="$case_root/upload-called"
@@ -93,11 +96,34 @@ run_profile_collision_preflight() (
 	done
 )
 
-for deploy_type in local ssh; do
-	for case_name in exact alias symlink-missing-exact symlink-missing-alias root-key root-cert; do
-		run_profile_collision_preflight "$deploy_type" "$case_name"
-	done
+for case_name in exact alias symlink-missing-exact symlink-missing-alias root-key root-cert; do
+	run_profile_collision_preflight local "$case_name"
 done
+for case_name in exact alias root-key root-cert; do
+	run_profile_collision_preflight ssh "$case_name"
+done
+
+run_ssh_local_symlink_independence() (
+	case_root="$TEST_ROOT/profile-ssh-local-symlink-independence"
+	mkdir -p "$case_root/real"
+	ln -s real "$case_root/link"
+	[ -L "$case_root/link" ] || { printf '%s\n' "test_deploy_transaction: SKIP SSH local-symlink independence (host lacks POSIX directory symlinks)" >&2; return 0; }
+	key_target="$case_root/link/shared.pem"
+	cert_target="$case_root/real/shared.pem"
+	guard_marker="$case_root/guard-called"
+	acmesh_lock_run() { shift; "$@"; }
+	acmesh_execute_profile_deploy_guarded() { : > "$guard_marker"; return 92; }
+	ACMESH_CURRENT_TASK_ID=20260101010108-799
+	export ACMESH_CURRENT_TASK_ID
+	status=0
+	acmesh_execute_profile_deploy ssh local-files remote-layout.example \
+		"$key_target" "$cert_target" '' '' ':' \
+		"$source_dir/key.pem" "$source_dir/fullchain.pem" '' '' 192.0.2.90 22 root root-key ecc \
+		>/dev/null 2>&1 || status=$?
+	[ "$status" = 92 ] || { echo "SSH preflight used the router's local symlink layout, got $status"; exit 1; }
+	[ -e "$guard_marker" ] || { echo "SSH deployment did not pass lexical preflight"; exit 1; }
+)
+run_ssh_local_symlink_independence
 
 new_parent_root="$TEST_ROOT/new-parent-deploy"
 rm -rf "$new_parent_root"
