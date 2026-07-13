@@ -1100,3 +1100,105 @@ msgstr "转换后的私钥只会用于本次部署，执行结束后会自动删
 
 msgid "Remote sudo requires passwordless sudo. Configure NOPASSWD for the deploy user or deploy as root."
 msgstr "远端 sudo 需要免密权限。请为部署用户配置 NOPASSWD，或改用 root 用户部署。"
+
+msgid "The plugin will execute the operation strictly according to the parameters above. By continuing, you confirm that you have reviewed and accept the consequences of certificate issuance quotas, remote file overwrite, service reload, and target system configuration."
+msgstr "插件将严格按照上方参数执行操作。继续即表示您已核对并接受证书签发配额、远端文件覆盖、服务重载及目标系统配置产生的结果。"
+
+msgid "Risk authorization required"
+msgstr "需要风险授权"
+
+msgid "Review the exact material operation before continuing."
+msgstr "继续前请核对本次操作的关键参数。"
+
+msgid "Run once"
+msgstr "仅运行一次"
+
+msgid "Run and remember"
+msgstr "运行并记住授权"
+
+msgid "Authorized"
+msgstr "已授权"
+
+msgid "Authorization records"
+msgstr "授权记录"
+
+msgid "Revoke"
+msgstr "撤销"
+
+msgid "Revoke all"
+msgstr "全部撤销"
+
+msgid "Subject"
+msgstr "对象"
+
+msgid "Scope"
+msgstr "范围"
+
+msgid "Granted"
+msgstr "授权时间"
+
+msgid "Last used"
+msgstr "最后使用"
+
+msgid "Uses"
+msgstr "使用次数"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "No authorization records"
+msgstr "没有授权记录"
+
+msgid "SSH host key changed"
+msgstr "SSH 主机密钥已变更"
+
+msgid "The SSH host identity changed. Deployment is blocked. Verify the host outside this operation before replacing the pinned identity."
+msgstr "SSH 主机身份已变更，部署已阻止。请先独立核验主机，再更换固定的主机身份。"
+
+msgid "Confirm SSH host identity"
+msgstr "确认 SSH 主机身份"
+
+msgid "Key algorithm"
+msgstr "密钥算法"
+
+msgid "Fingerprint"
+msgstr "指纹"
+
+msgid "Confirm and pin"
+msgstr "确认并固定"
+
+msgid "Revoke certificate"
+msgstr "吊销证书"
+
+msgid "Remove certificate"
+msgstr "移除证书"
+
+msgid "Unable to delete profile"
+msgstr "无法删除配置档案"
+
+msgid "SAN list"
+msgstr "SAN 列表"
+
+msgid "DNS challenge alias (optional)"
+msgstr "DNS 挑战别名（可选）"
+
+msgid "DNS propagation delay (seconds)"
+msgstr "DNS 传播等待时间（秒）"
+
+msgid "Test this core action"
+msgstr "测试本次核心操作"
+
+msgid "Explicit profile policy"
+msgstr "配置档案的显式策略"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Host"
+msgstr "主机"
+
+msgid "Port"
+msgstr "端口"

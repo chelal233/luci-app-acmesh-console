@@ -44,9 +44,10 @@ set +e
 authorization_error="$(ACMESHCTL="$ROOT/root/usr/libexec/acmesh-console/acmeshctl" sh "$ROOT/root/usr/libexec/acmesh-console/rpc-read" authorization_list 2>/dev/null)"
 authorization_rc=$?
 set -e
-[ "$authorization_rc" = 2 ] || { echo "authorization_list should exit 2"; echo "$authorization_error"; exit 1; }
-printf '%s' "$authorization_error" | grep -F '"ok":false' >/dev/null || { echo "authorization_list did not return structured JSON"; exit 1; }
-printf '%s' "$authorization_error" | grep -F 'not implemented' >/dev/null || { echo "authorization_list returned generic unsupported command"; exit 1; }
+[ "$authorization_rc" = 0 ] || { echo "authorization_list should succeed"; echo "$authorization_error"; exit 1; }
+printf '%s' "$authorization_error" | grep -F '"ok":true' >/dev/null || { echo "authorization_list did not return structured JSON"; exit 1; }
+printf '%s' "$authorization_error" | grep -F '"records":[' >/dev/null || { echo "authorization_list omitted records"; exit 1; }
+grep -F 'ACMESH_AUTH_RECOMPUTE_CALLBACK=acmesh_operation_recompute' "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" >/dev/null || { echo "authorization_list omitted recompute callback"; exit 1; }
 
 set +e
 consume_error="$(ACMESH_REQUEST_DIR="$ROOT/tests/.tmp/missing-request-inbox" sh "$ROOT/root/usr/libexec/acmesh-console/rpc-write" renew --request-id not-an-id 2>/dev/null)"

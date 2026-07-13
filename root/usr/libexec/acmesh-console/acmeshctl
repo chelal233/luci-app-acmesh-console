@@ -578,8 +578,9 @@ case "$cmd" in
 		fi
 		;;
 	authorization-list)
-		printf '{"ok":false,"error":"not implemented"}\n'
-		exit 2
+		ACMESH_AUTH_RECOMPUTE_CALLBACK=acmesh_operation_recompute
+		export ACMESH_AUTH_RECOMPUTE_CALLBACK
+		acmesh_auth_list
 		;;
 	authorization-execute)
 		[ -n "$request_file" ] || { printf '{"ok":false,"error":"request required"}\n'; exit 2; }
@@ -604,9 +605,26 @@ case "$cmd" in
 		[ "$dependencies" = '[]' ] || { printf '{"ok":false,"error":"profileReferenced","dependencies":%s}\n' "$dependencies"; exit 4; }
 		acmesh_operation_start profile-delete profile "$profile_type.$profile_id" "$request_file"
 		;;
-	ssh-hostkey-probe|ssh-hostkey-confirm|authorization-revoke|authorization-revoke-all)
-		printf '{"ok":false,"error":"not implemented"}\n'
-		exit 2
+	authorization-revoke)
+		record_id="$(acmesh_request_value "$request_file" recordId '')"
+		acmesh_auth_revoke "$record_id" || { printf '{"ok":false,"error":"authorization revoke failed"}\n'; exit 2; }
+		printf '{"ok":true}\n'
+		;;
+	authorization-revoke-all)
+		acmesh_auth_revoke_all || { printf '{"ok":false,"error":"authorization revoke all failed"}\n'; exit 2; }
+		printf '{"ok":true}\n'
+		;;
+	ssh-hostkey-probe)
+		host="$(acmesh_request_value "$request_file" host '')" port="$(acmesh_request_value "$request_file" port 22)"
+		challenge_id="$(date +%s)-$$"; challenge_dir="${ACMESH_SSH_CHALLENGE_DIR:-/var/run/acmesh-console/ssh-hostkey-challenges}"
+		acmesh_private_dir "$challenge_dir" || exit 1
+		acmesh_ssh_probe_host_key "$host" "$port" "$challenge_dir/$challenge_id"
+		;;
+	ssh-hostkey-confirm)
+		challenge_id="$(acmesh_request_value "$request_file" challengeId '')"
+		acmesh_auth_valid_id "$challenge_id" || { printf '{"ok":false,"error":"invalid host key challenge"}\n'; exit 2; }
+		challenge_dir="${ACMESH_SSH_CHALLENGE_DIR:-/var/run/acmesh-console/ssh-hostkey-challenges}"
+		acmesh_ssh_confirm_host_key "$challenge_dir/$challenge_id"
 		;;
 	*)
 		printf '{"ok":false,"error":"unsupported command"}\n'

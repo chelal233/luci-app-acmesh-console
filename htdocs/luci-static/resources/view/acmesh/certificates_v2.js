@@ -2,6 +2,7 @@
 'require view';
 'require ui';
 'require acmesh.api as acmeshApi';
+'require acmesh.authorization as authorization';
 
 function panel(title, value, warning) {
 	return E('div', { 'class': 'acmesh-panel ' + (warning ? 'is-warning' : '') }, [
@@ -232,18 +233,21 @@ return view.extend({
 			};
 		};
 
-		const importHistory = function() {
-			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write('import_apply', { source: 'history' }).then(showTask).then(refreshCertificates);
-		};
-
 		const renewCertificate = function(cert) {
 			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write('renew', {
+			return authorization.run('renew', {
 				domain: cert.mainDomain || '',
 				keyType: cert.keyType || '',
 				testMode: false
 			}).then(showTask);
+		};
+
+		const destructiveCertificateAction = function(method, cert) {
+			taskBox.textContent = _('Creating task') + '...';
+			return authorization.run(method, {
+				domain: cert.mainDomain || '',
+				keyType: cert.keyType || ''
+			}, { destructive: true }).then(showTask).then(refreshCertificates);
 		};
 
 		const deployCertificateWithProfile = function(cert, profileSelect) {
@@ -261,7 +265,7 @@ return view.extend({
 				return Promise.resolve();
 			}
 			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write(prepared.method, prepared.payload).then(showTask);
+			return authorization.run(prepared.method, prepared.payload).then(showTask);
 		};
 
 		const renderSummary = function() {
@@ -290,14 +294,14 @@ return view.extend({
 							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
-								return acmeshApi.write('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
+								return authorization.run('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
 							});
 						}) }, _('Install selected tag')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
-								return acmeshApi.write('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
+								return authorization.run('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
 							});
 						}) }, _('Upgrade selected tag'))
 					])
@@ -325,7 +329,9 @@ return view.extend({
 						profileSelect,
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 							return deployCertificateWithProfile(cert, profileSelect);
-						}) }, _('Deploy'))
+						}) }, _('Deploy')),
+						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_revoke', cert); }) }, _('Revoke certificate')),
+						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_remove', cert); }) }, _('Remove certificate'))
 					])
 				];
 			}, this);
@@ -334,7 +340,6 @@ return view.extend({
 				E('h2', {}, _('Certificates')),
 				renderSummary(),
 				E('div', { 'class': 'acmesh-actions' }, [
-					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, importHistory) }, _('Import history')),
 					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, refreshCertificates) }, _('Refresh'))
 				]),
 				renderTable([ _('Domain'), _('Key type'), _('Primary'), _('SAN'), _('Config'), '' ], rows, _('No certificates found'))
@@ -360,7 +365,9 @@ return view.extend({
 					profileSelect,
 					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 						return deployCertificateWithProfile(cert, profileSelect);
-					}) }, _('Deploy'))
+					}) }, _('Deploy')),
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_revoke', cert); }) }, _('Revoke certificate')),
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_remove', cert); }) }, _('Remove certificate'))
 				]),
 				renderTable([ _('Field'), _('Value') ], [
 					[ _('Domain'), cert.mainDomain || '-' ],
