@@ -82,6 +82,11 @@ ACMESH_AUTH_ACCOUNT_ID=account-1 ACMESH_AUTH_CA=letsencrypt ACMESH_AUTH_PRIMARY_
 www.example.com' ACMESH_AUTH_KEY_TYPE=ec256 ACMESH_AUTH_VALIDATION=dns ACMESH_AUTH_DNS_API=dns_cf ACMESH_AUTH_DNS_SLEEP=30 ACMESH_AUTH_DEPLOY_PROFILE_ID=deploy-1 ACMESH_AUTH_DEPLOY_FINGERPRINT=sha256:deploy-a ACMESH_AUTH_TEST_MODE=false acmesh_auth_snapshot renew issueProfile issue-1 "$TMP/out/renew"
 [ "$(fp "$TMP/out/i1")" != "$(fp "$TMP/out/renew")" ]
 
+ACMESH_AUTH_ACCOUNT_ID=account-1 ACMESH_AUTH_CA=letsencrypt ACMESH_AUTH_PRIMARY_DOMAIN=example.com ACMESH_AUTH_DOMAINS=example.com ACMESH_AUTH_KEY_TYPE=ec256 ACMESH_AUTH_VALIDATION=dns ACMESH_AUTH_DNS_API=dns_cf ACMESH_AUTH_CREDENTIAL_MODE=token ACMESH_AUTH_CREDENTIAL_KEYS=CF_Token ACMESH_AUTH_DNS_SLEEP=0 ACMESH_AUTH_TEST_MODE=false acmesh_auth_snapshot issue issueProfile issue-credentials "$TMP/out/credential-a"
+ACMESH_AUTH_ACCOUNT_ID=account-1 ACMESH_AUTH_CA=letsencrypt ACMESH_AUTH_PRIMARY_DOMAIN=example.com ACMESH_AUTH_DOMAINS=example.com ACMESH_AUTH_KEY_TYPE=ec256 ACMESH_AUTH_VALIDATION=dns ACMESH_AUTH_DNS_API=dns_cf ACMESH_AUTH_CREDENTIAL_MODE=global-key ACMESH_AUTH_CREDENTIAL_KEYS='CF_Email
+CF_Key' ACMESH_AUTH_DNS_SLEEP=0 ACMESH_AUTH_TEST_MODE=false acmesh_auth_snapshot issue issueProfile issue-credentials "$TMP/out/credential-b"
+[ "$(fp "$TMP/out/credential-a")" != "$(fp "$TMP/out/credential-b")" ]
+
 deploy() {
 	out="$1"
 	ACMESH_AUTH_DEPLOY_TYPE=ssh ACMESH_AUTH_SOURCE_TYPE=paste-pem ACMESH_AUTH_KEY_PEM="$KEY_PEM" ACMESH_AUTH_FULLCHAIN_PEM="$CHAIN_PEM" \
@@ -108,6 +113,9 @@ unset HOST DEST_KEY RELOAD HOST_FP
 ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.1.0 acmesh_auth_snapshot core-upgrade core acme.sh "$TMP/out/core1"
 ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.2.0 acmesh_auth_snapshot core-upgrade core acme.sh "$TMP/out/core2"
 [ "$(fp "$TMP/out/core1")" != "$(fp "$TMP/out/core2")" ]
+ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.2.0 ACMESH_AUTH_CORE_EMAIL=first@example.org acmesh_auth_snapshot core-install global core "$TMP/out/core-install-1"
+ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.2.0 ACMESH_AUTH_CORE_EMAIL=second@example.org acmesh_auth_snapshot core-install global core "$TMP/out/core-install-2"
+[ "$(fp "$TMP/out/core-install-1")" != "$(fp "$TMP/out/core-install-2")" ]
 acmesh_auth_summary "$TMP/out/d1" "$TMP/out/summary"
 ! grep -E 'top-secret|certificate-secret|BEGIN' "$TMP/out/summary" >/dev/null
 grep -F '"canonicalVersion":1,"ackVersion":1' "$TMP/out/summary" >/dev/null

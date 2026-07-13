@@ -100,7 +100,7 @@ expect_invalid_request null-mode renew '{"domain":"invalid-null.example","testMo
 
 config_request="$TMP/config-request.json"
 cat > "$config_request" <<EOF
-{"schemaVersion":2,"global":{"defaultAccountEmail":"request@example.org","testMode":true,"coreTag":"v3.1.4","acmeHome":"$TMP/acme-home"},"accountProfiles":[{"id":"request-account","name":"Request","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"request-profile","name":"Request","domain":"request.example.org","accountProfileId":"request-account","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-test-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"config-secret-token"}}],"deployProfiles":[]}
+{"schemaVersion":2,"global":{"defaultAccountEmail":"request@example.org","coreTag":"v3.1.4","acmeHome":"$TMP/acme-home"},"accountProfiles":[{"id":"request-account","name":"Request","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"request-profile","name":"Request","domain":"request.example.org","accountProfileId":"request-account","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-test-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"config-secret-token"}}],"deployProfiles":[]}
 EOF
 set +e
 config_out="$(sh "$CTL" config-save --request-file "$config_request")"
@@ -113,44 +113,34 @@ case "$config_out" in *'"ok":true'*) ;; *) echo "request-file config-save failed
 renew_request="$TMP/renew-request.json"
 printf '%s\n' '{"domain":"request-renew.example","keyType":"rsa","testMode":true}' > "$renew_request"
 renew_out="$(sh "$CTL" renew --request-file "$renew_request")"
-case "$renew_out" in *'"ok":true'*'"testMode":true'*'"taskId"'*) ;; *) echo "request-file renew failed"; echo "$renew_out"; exit 1 ;; esac
-renew_id="$(printf '%s' "$renew_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-renew_log="$(sh "$CTL" task-log --task-id "$renew_id")"
-case "$renew_log" in *"-d 'request-renew.example'"*'--ecc'*) echo "request-file renew ignored rsa key type"; exit 1 ;; *"-d 'request-renew.example'"*) ;; *) echo "request-file renew ignored domain"; echo "$renew_log"; exit 1 ;; esac
+case "$renew_out" in *'"ok":true'*'"testMode":true'*'"command"'*) ;; *) echo "request-file renew failed"; echo "$renew_out"; exit 1 ;; esac
+case "$renew_out" in *"-d 'request-renew.example'"*'--ecc'*) echo "request-file renew ignored rsa key type"; exit 1 ;; *"-d 'request-renew.example'"*) ;; *) echo "request-file renew ignored domain"; echo "$renew_out"; exit 1 ;; esac
+case "$renew_out" in *'taskId'*) echo "renew test mode created a task"; exit 1 ;; esac
 
 issue_request="$TMP/issue-request.json"
 printf '%s\n' '{"domain":"request-issue.example","keyType":"rsa2048","validationMethod":"dns","dnsApi":"dns_cf","ca":"letsencrypt_staging","accountEmail":"request@example.org","credentials":["CF_Token=issue-secret-token"],"testMode":true}' > "$issue_request"
 issue_out="$(sh "$CTL" issue --request-file "$issue_request")"
-case "$issue_out" in *'"ok":true'*'"testMode":true'*'"taskId"'*) ;; *) echo "request-file issue failed"; echo "$issue_out"; exit 1 ;; esac
-issue_id="$(printf '%s' "$issue_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-issue_log="$(sh "$CTL" task-log --task-id "$issue_id")"
-case "$issue_log" in *"letsencrypt_test"*"request-issue.example"*"--keylength 2048"*) ;; *) echo "request-file issue ignored fields"; echo "$issue_log"; exit 1 ;; esac
-case "$issue_log" in *'issue-secret-token'*) echo "request-file issue leaked credential to task log"; exit 1 ;; esac
+case "$issue_out" in *'"ok":true'*'"testMode":true'*'"command"'*) ;; *) echo "request-file issue failed"; echo "$issue_out"; exit 1 ;; esac
+case "$issue_out" in *"letsencrypt_test"*"request-issue.example"*"--keylength 2048"*) ;; *) echo "request-file issue ignored fields"; echo "$issue_out"; exit 1 ;; esac
+case "$issue_out" in *'issue-secret-token'*|*'taskId'*) echo "request-file issue leaked a secret or created a task"; exit 1 ;; esac
 
 core_request="$TMP/core-request.json"
 cat > "$core_request" <<EOF
 {"home":"$TMP/core-home","email":"core-request@example.org","tag":"v3.1.3","testMode":true}
 EOF
 core_out="$(sh "$CTL" core-install --request-file "$core_request")"
-case "$core_out" in *'"ok":true'*'"testMode":true'*'"taskId"'*) ;; *) echo "request-file core-install failed"; echo "$core_out"; exit 1 ;; esac
-core_id="$(printf '%s' "$core_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-core_log="$(sh "$CTL" task-log --task-id "$core_id")"
+case "$core_out" in *'"ok":true'*'"testMode":true'*'"command"'*) ;; *) echo "request-file core-install failed"; echo "$core_out"; exit 1 ;; esac
 for needle in "$TMP/core-home" 'refs/tags/v3.1.3.tar.gz' 'core-request@example.org'; do
-	printf '%s' "$core_log" | grep -F "$needle" >/dev/null || { echo "request-file core-install ignored $needle"; echo "$core_log"; exit 1; }
+	printf '%s' "$core_out" | grep -F "$needle" >/dev/null || { echo "request-file core-install ignored $needle"; echo "$core_out"; exit 1; }
 done
+case "$core_out" in *'taskId'*) echo "core test mode created a task"; exit 1 ;; esac
 
 deploy_request="$TMP/deploy-request.json"
 printf '%s\n' '{"type":"local","certSource":"paste-pem","domain":"request-deploy.example","keyFile":"/etc/ssl/request.key","fullchainFile":"/etc/ssl/request.fullchain.pem","reloadcmd":"service nginx reload","keyPem":"deploy-private-secret","fullchainPem":"deploy-fullchain-secret"}' > "$deploy_request"
 deploy_out="$(sh "$CTL" deploy-test --request-file "$deploy_request")"
-case "$deploy_out" in *'"ok":true'*'"testMode":true'*'"taskId"'*) ;; *) echo "request-file deploy-test failed"; echo "$deploy_out"; exit 1 ;; esac
-deploy_id="$(printf '%s' "$deploy_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-deploy_log="$(sh "$CTL" task-log --task-id "$deploy_id")"
-case "$deploy_log" in *'Deploy command preview omitted from task log.'*) ;; *) echo "request-file deploy did not use safe logging"; echo "$deploy_log"; exit 1 ;; esac
-case "$deploy_log" in *'/etc/ssl/request.key'*|*'/etc/ssl/request.fullchain.pem'*|*'service nginx reload'*|*'deploy-private-secret'*|*'deploy-fullchain-secret'*) echo "request-file deploy leaked command material"; exit 1 ;; esac
+case "$deploy_out" in *'"ok":true'*'"testMode":true'*) ;; *) echo "request-file deploy-test failed"; echo "$deploy_out"; exit 1 ;; esac
+case "$deploy_out" in *'"preview":"validated; no task or external mutation created"'*) ;; *) echo "request-file deploy did not return safe preview"; exit 1 ;; esac
+case "$deploy_out" in *'/etc/ssl/request.key'*|*'/etc/ssl/request.fullchain.pem'*|*'service nginx reload'*|*'deploy-private-secret'*|*'deploy-fullchain-secret'*|*'taskId'*) echo "request-file deploy leaked command material or created task"; exit 1 ;; esac
 
 dns_request="$TMP/dns-request.json"
 printf '%s\n' '{"domain":"request-dns.example","dnsApi":"dns_cf","credentials":["CF_Token=dns-secret-token"],"testMode":true}' > "$dns_request"
@@ -175,9 +165,9 @@ set +e
 not_implemented="$(sh "$CTL" authorization-execute --request-file "$issue_request")"
 not_implemented_rc=$?
 set -e
-[ "$not_implemented_rc" = 2 ] || { echo "planned authorization command should exit 2"; exit 1; }
+[ "$not_implemented_rc" = 2 ] || { echo "invalid authorization command should exit 2"; exit 1; }
 printf '%s' "$not_implemented" | grep -F '"ok":false' >/dev/null
-printf '%s' "$not_implemented" | grep -F 'not implemented' >/dev/null
+printf '%s' "$not_implemented" | grep -F 'invalid authorization challenge' >/dev/null
 
 if [ -n "$JSONFILTER_ARG_LOG" ] && [ -f "$JSONFILTER_ARG_LOG" ]; then
 	! grep -F 'config-secret-token' "$JSONFILTER_ARG_LOG" >/dev/null || { echo "config secret entered jsonfilter argv"; exit 1; }

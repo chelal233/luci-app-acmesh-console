@@ -23,30 +23,12 @@ missing_email_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue 
 missing_email_rc=$?
 set -e
 case "$missing_email_rc:$missing_email_out" in
-	0:*) echo "real mode without account email should fail"; echo "$missing_email_out"; exit 1 ;;
-	*account\ email\ is\ required*) ;;
-	*) echo "real mode without account email failed for wrong reason"; echo "$missing_email_out"; exit 1 ;;
+	2:*real\ issue\ requires\ profileId*) ;;
+	*) echo "legacy real issue was not rejected"; exit 1 ;;
 esac
 
-out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue --home "$home" --domain example.com --key-type ecc --dns-api dns_cf --account-email user@example.org --real-mode)"
-case "$out" in
-	*'"ok":true'*'"taskId"'*) ;;
-	*) echo "real mode did not create task"; echo "$out"; exit 1 ;;
-esac
-
-task_id="$(printf '%s' "$out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-status="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-status --task-id "$task_id")"
-log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$task_id")"
-
-case "$status" in
-	*'"status":"success"'*) ;;
-	*) echo "real mode task did not succeed"; echo "$status"; echo "$log"; exit 1 ;;
-esac
-
-case "$log" in
-	*"REAL MODE"*"Using account email: user@example.org"*"FAKE_ACME_CALLED"*"--issue"*"--accountemail user@example.org"*"--dns dns_cf"*) ;;
-	*) echo "real mode did not execute fake acme.sh"; echo "$log"; exit 1 ;;
-esac
+set +e; out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue --home "$home" --domain example.com --key-type ecc --dns-api dns_cf --account-email user@example.org --real-mode)"; rc=$?; set -e
+[ "$rc" = 2 ]; printf '%s' "$out" | grep -F 'real issue requires profileId' >/dev/null
+[ ! -e "$ACMESH_TASK_STATE_DIR" ] && [ ! -e "$ACMESH_TASK_LOG_DIR" ]
 
 echo "test_issue_real_mode: ok"

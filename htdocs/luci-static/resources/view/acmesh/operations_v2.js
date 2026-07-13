@@ -6,7 +6,6 @@
 const DEFAULT_CONFIG = {
 	global: {
 		defaultAccountEmail: '',
-		testMode: true,
 		coreTag: 'v3.1.4',
 		acmeHome: '/etc/acme'
 	},
@@ -331,8 +330,13 @@ const DNS_PROVIDER_OPTIONS = Object.keys(DNS_PROVIDER_TEMPLATES).map(function(dn
 function mergeConfig(config) {
 	config = config || {};
 	config.global = Object.assign({}, DEFAULT_CONFIG.global, config.global || {});
+	delete config.global.testMode;
 	config.accountProfiles = Array.isArray(config.accountProfiles) ? config.accountProfiles : [];
 	config.issueProfiles = Array.isArray(config.issueProfiles) ? config.issueProfiles : [];
+	config.issueProfiles.forEach(function(profile) {
+		if (!profile.testModeOverride || profile.testModeOverride === 'inherit-global-test-mode')
+			profile.testModeOverride = 'force-real-mode';
+	});
 	config.deployProfiles = Array.isArray(config.deployProfiles) ? config.deployProfiles : [];
 	return config;
 }
@@ -355,8 +359,7 @@ function migrationSummary(config) {
 		_('Deploy profiles') + ': ' + config.deployProfiles.length,
 		_('Default account email') + ': ' + (config.global.defaultAccountEmail || '-'),
 		_('ACME home') + ': ' + (config.global.acmeHome || '-'),
-		_('Core tag') + ': ' + (config.global.coreTag || '-'),
-		_('Global test mode') + ': ' + (config.global.testMode === false ? _('disabled') : _('enabled'))
+		_('Core tag') + ': ' + (config.global.coreTag || '-')
 	].join('\n');
 }
 
@@ -716,7 +719,7 @@ return view.extend({
 				return true;
 			if (profile && profile.testModeOverride === 'force-real-mode')
 				return false;
-			return config.global.testMode !== false;
+			return false;
 		};
 
 		const testModePolicyLabel = function(profile) {
@@ -724,7 +727,7 @@ return view.extend({
 				return _('Always Test Mode');
 			if (profile && profile.testModeOverride === 'force-real-mode')
 				return _('Always Real Mode');
-			return _('Inherit Global Test Mode');
+			return _('Always Real Mode');
 		};
 
 		const deploySourceLabel = function(profile) {
@@ -778,7 +781,7 @@ return view.extend({
 				email: accountEmail(account),
 				testMode: testMode,
 				testModeLabel: testMode ? _('Test') : _('Real'),
-				testModeSource: (profile.testModeOverride && profile.testModeOverride !== 'inherit-global-test-mode') ? _('Override') : _('Inherit default'),
+				testModeSource: _('Explicit profile policy'),
 				deployLabel: resolveDeployProfile(deploy).label,
 				accountLabel: account.name || profile.accountProfileId || _('No account profile')
 			};
@@ -1121,7 +1124,7 @@ return view.extend({
 						deployProfileId: '',
 						keyType: keyType,
 						validationMethod: validationMethod,
-						testModeOverride: 'inherit-global-test-mode',
+						testModeOverride: 'force-real-mode',
 						dnsApi: dnsApi,
 						credentialMode: credentialMode,
 						credentials: importCredentialsFromRaw(dnsApi, credentialMode, rawVars)
@@ -1190,7 +1193,7 @@ return view.extend({
 			const account = select(existing.accountProfileId || accountOptions[0][0], accountOptions);
 			const deploy = select(existing.deployProfileId || '', deployOptions);
 			const validation = select(existing.validationMethod || 'dns', [[ 'dns', 'DNS-01' ], [ 'webroot', 'HTTP-01 Webroot' ], [ 'standalone', 'HTTP-01 Standalone' ], [ 'alpn', 'TLS-ALPN-01' ]]);
-			const testPolicy = select(existing.testModeOverride || 'inherit-global-test-mode', [[ 'inherit-global-test-mode', _('Inherit Global Test Mode') ], [ 'force-test-mode', _('Always Test Mode') ], [ 'force-real-mode', _('Always Real Mode') ]]);
+			const testPolicy = select(existing.testModeOverride || 'force-real-mode', [[ 'force-test-mode', _('Always Test Mode') ], [ 'force-real-mode', _('Always Real Mode') ]]);
 			const dnsApi = select(selectedDnsApi, DNS_PROVIDER_OPTIONS);
 			const customDnsApi = input(selectedDnsApi === 'custom' ? (existing.dnsApi || '') : '', 'dns_xxx');
 			const customDnsFilter = input('', 'cloudflare / aliyun / dns_cf');
@@ -1395,7 +1398,7 @@ return view.extend({
 					profile.reloadcmd || '-',
 					E('div', { 'class': 'acmesh-row-actions' }, [
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return runDeployProfile(profile, config.global.testMode === false ? 'deploy-run' : 'deploy-test');
+							return runDeployProfile(profile, 'deploy-run');
 						}) }, _('Deploy')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 							return runDeployProfile(profile);

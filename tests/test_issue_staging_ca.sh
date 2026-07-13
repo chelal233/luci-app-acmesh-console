@@ -15,12 +15,10 @@ export ACMESH_TASK_STATE_DIR="$ROOT/tests/.tmp/staging-ca-state"
 export ACMESH_TASK_LOG_DIR="$ROOT/tests/.tmp/staging-ca-log"
 rm -rf "$ACMESH_TASK_STATE_DIR" "$ACMESH_TASK_LOG_DIR"
 task_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --ca letsencrypt_staging --test-mode)"
-task_id="$(printf '%s' "$task_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$task_id")"
-case "$log" in
-	*"TEST MODE"*"--server 'letsencrypt_test'"*) ;;
-	*) echo "issue test-mode log did not include staging server"; echo "$log"; exit 1 ;;
+case "$task_out" in
+	*'"testMode":true'*"--server 'letsencrypt_test'"*) ;;
+	*) echo "issue test-mode preview did not include staging server"; echo "$task_out"; exit 1 ;;
 esac
+[ ! -e "$ACMESH_TASK_STATE_DIR" ] && [ ! -e "$ACMESH_TASK_LOG_DIR" ]
 
 echo "test_issue_staging_ca: ok"

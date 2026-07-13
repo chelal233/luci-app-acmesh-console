@@ -21,15 +21,16 @@ EOF
 
 default_json="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-get)"
 case "$default_json" in
-	*'"defaultAccountEmail":"bootstrap@example.com"'*'"testMode":false'*'"coreTag":"v3.1.3"'*'"acmeHome":"/tmp/acme-bootstrap"'*) ;;
+	*'"defaultAccountEmail":"bootstrap@example.com"'*'"coreTag":"v3.1.3"'*'"acmeHome":"/tmp/acme-bootstrap"'*) ;;
 	*) echo "default config missing global defaults"; echo "$default_json"; exit 1 ;;
 esac
+case "$default_json" in *'"testMode"'*) echo "legacy global test mode was not removed"; exit 1;; esac
 case "$default_json" in
 	*'"schemaVersion":2'*'"accountProfiles":[]'*'"issueProfiles":[]'*'"deployProfiles":[]'*) ;;
 	*) echo "default config missing profile arrays"; echo "$default_json"; exit 1 ;;
 esac
 
-saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","testMode":true,"coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[]}'
+saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[]}'
 request="$ROOT/tests/.tmp/config-save-request.json"
 printf '%s\n' "$saved" > "$request"
 chmod 600 "$request"
@@ -78,17 +79,14 @@ case "$default_status" in
 	*) echo "status should use saved acmeHome by default"; echo "$default_status"; exit 1 ;;
 esac
 
-renew_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" renew --domain custom.example --key-type ecc)"
+renew_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" renew --domain custom.example --key-type ecc --test-mode)"
 case "$renew_out" in
-	*'"ok":true'*'"testMode":true'*'"taskId"'*) ;;
+	*'"ok":true'*'"testMode":true'*'"command"'*) ;;
 	*) echo "renew should inherit saved test mode"; echo "$renew_out"; exit 1 ;;
 esac
-renew_id="$(printf '%s' "$renew_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-renew_log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$renew_id")"
-case "$renew_log" in
+case "$renew_out" in
 	*"--home '$configured_home'"*"--renew"*) ;;
-	*) echo "renew should use saved acmeHome by default"; echo "$renew_log"; exit 1 ;;
+	*) echo "renew should use saved acmeHome by default"; echo "$renew_out"; exit 1 ;;
 esac
 
 managed_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-preview --type ssh --cert-source managed-acme --domain custom.example --key-type ecc --host 192.0.2.10 --key-file /etc/ssl/custom.key --fullchain-file /etc/ssl/custom.fullchain.pem)"
@@ -100,22 +98,19 @@ esac
 export ACMESH_TASK_STATE_DIR="$ROOT/tests/.tmp/config-default-state"
 export ACMESH_TASK_LOG_DIR="$ROOT/tests/.tmp/config-default-log"
 rm -rf "$ACMESH_TASK_STATE_DIR" "$ACMESH_TASK_LOG_DIR"
-core_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" core-install --home "$ROOT/tests/.tmp/config-core-home")"
+core_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" core-install --home "$ROOT/tests/.tmp/config-core-home" --test-mode)"
 case "$core_out" in
-	*'"testMode":true'*'"taskId"'*) ;;
+	*'"testMode":true'*'"command"'*) ;;
 	*) echo "core-install should inherit global testMode"; echo "$core_out"; exit 1 ;;
 esac
-task_id="$(printf '%s' "$core_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-core_log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$task_id")"
-case "$core_log" in
+case "$core_out" in
 	*"refs/tags/v3.1.4.tar.gz"*"ops@example.com"*) ;;
-	*) echo "core-install did not use global default email/tag"; echo "$core_log"; exit 1 ;;
+	*) echo "core-install did not use global default email/tag"; echo "$core_out"; exit 1 ;;
 esac
 
-issue_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf)"
+issue_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --test-mode)"
 case "$issue_out" in
-	*'"testMode":true'*'"taskId"'*) ;;
+	*'"testMode":true'*'"command"'*) ;;
 	*) echo "issue should inherit global testMode"; echo "$issue_out"; exit 1 ;;
 esac
 

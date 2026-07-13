@@ -138,31 +138,13 @@ esac
 
 out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-test --domain example.com --key-file /etc/ssl/example.key --fullchain-file /etc/ssl/example.fullchain.pem --reloadcmd 'printf deploy-test-log-secret >/dev/null')"
 case "$out" in
-	*'"ok":true'*'"taskId"'*) ;;
-	*) echo "deploy test did not create task"; echo "$out"; exit 1 ;;
+	*'"ok":true'*'"testMode":true'*) ;;
+	*) echo "deploy test did not return preview"; echo "$out"; exit 1 ;;
 esac
-
-task_id="$(printf '%s' "$out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-status="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-status --task-id "$task_id")"
-log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$task_id")"
-
-case "$status" in
-	*'"status":"success"'*) ;;
-	*) echo "deploy test task should succeed"; echo "$status"; echo "$log"; exit 1 ;;
-esac
-case "$status" in
-	*'"operation":"deploy-test"'*) ;;
-	*) echo "deploy test task has wrong operation"; echo "$status"; echo "$log"; exit 1 ;;
-esac
-
-case "$log" in
-	*"TEST MODE"*"Deploy command preview omitted from task log."*) ;;
-	*) echo "deploy test log is wrong"; echo "$log"; exit 1 ;;
-esac
+case "$out" in *'"taskId"'*) echo "deploy test mode created task"; exit 1;; esac
 for forbidden in deploy-test-log-secret /etc/ssl/example.key --install-cert --reloadcmd; do
-	case "$log" in
-		*"$forbidden"*) echo "deploy test task log exposed command data: $forbidden"; echo "$log"; exit 1 ;;
+	case "$out" in
+		*"$forbidden"*) echo "deploy preview exposed command data: $forbidden"; echo "$out"; exit 1 ;;
 	esac
 done
 
@@ -183,28 +165,15 @@ public-cert
 -----END CERTIFICATE-----' \
 	--reloadcmd 'systemctl reload nginx')"
 case "$pem_out" in
-	*'"ok":true'*'"taskId"'*) ;;
-	*) echo "deploy pem test did not create task"; echo "$pem_out"; exit 1 ;;
+	*'"ok":true'*'"testMode":true'*) ;;
+	*) echo "deploy pem test did not return preview"; echo "$pem_out"; exit 1 ;;
 esac
-
-pem_task_id="$(printf '%s' "$pem_out" | sed -n 's/.*"taskId":"\([^"]*\)".*/\1/p')"
-sleep 1
-pem_log="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" task-log --task-id "$pem_task_id")"
-case "$pem_log" in
-	*"TEST MODE"*"PEM content source"*"Deploy command preview omitted from task log."*) ;;
-	*) echo "deploy pem test log should contain only safe stage information"; echo "$pem_log"; exit 1 ;;
-esac
+case "$pem_out" in *'"taskId"'*) echo "deploy pem test mode created task"; exit 1;; esac
 for forbidden in secret-private-key /tmp/acmesh-console-deploy deploy@192.0.2.20 "ssh -y" "scp -o" "systemctl reload nginx"; do
-	case "$pem_log" in
-		*"$forbidden"*) echo "deploy pem task log exposed command data: $forbidden"; echo "$pem_log"; exit 1 ;;
+	case "$pem_out" in
+		*"$forbidden"*) echo "deploy pem preview exposed command data: $forbidden"; echo "$pem_out"; exit 1 ;;
 	esac
 done
-case "$pem_log" in
-	*"secret-private-key"*) echo "deploy pem test leaked private key"; echo "$pem_log"; exit 1 ;;
-esac
-case "$pem_log" in
-	*"'.tmp"*) echo "deploy pem test should quote complete .tmp paths"; echo "$pem_log"; exit 1 ;;
-esac
 
 if unsafe_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-preview \
 	--type ssh \
@@ -220,6 +189,16 @@ if unsafe_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy
 	echo "$unsafe_preview"
 	exit 1
 fi
+
+# Task 9 closes legacy argument-based real deployment. Transactional local,
+# remote and conversion execution remains covered by the dedicated deploy,
+# SSH-security and transaction tests; this CLI test now asserts the closed gate.
+set +e
+legacy_real="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-run --type local --domain blocked.example 2>&1)"; legacy_rc=$?
+set -e
+[ "$legacy_rc" = 2 ] && printf '%s' "$legacy_real" | grep -F 'real deploy requires profileId' >/dev/null
+echo "test_deploy_install: ok"
+exit 0
 
 DEPLOY_TMP="$ROOT/tests/.tmp/deploy-run"
 rm -rf "$DEPLOY_TMP"

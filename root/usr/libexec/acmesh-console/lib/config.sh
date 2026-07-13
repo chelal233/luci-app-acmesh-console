@@ -14,17 +14,11 @@ acmesh_config_uci_option() {
 acmesh_config_default_json() {
 	home="$(acmesh_config_uci_option home || true)"
 	email="$(acmesh_config_uci_option default_account_email || true)"
-	test_mode="$(acmesh_config_uci_option test_mode || true)"
 	core_tag="$(acmesh_config_uci_option core_tag || true)"
 	[ -n "$home" ] || home="/etc/acme"
 	[ -n "$core_tag" ] || core_tag="v3.1.4"
-	case "$test_mode" in
-		0|false|False|FALSE|off|Off|OFF|no|No|NO) test_mode=false ;;
-		*) test_mode=true ;;
-	esac
-	printf '{"schemaVersion":2,"global":{"defaultAccountEmail":"%s","testMode":%s,"coreTag":"%s","acmeHome":"%s"},"accountProfiles":[],"issueProfiles":[],"deployProfiles":[]}\n' \
+	printf '{"schemaVersion":2,"global":{"defaultAccountEmail":"%s","coreTag":"%s","acmeHome":"%s"},"accountProfiles":[],"issueProfiles":[],"deployProfiles":[]}\n' \
 		"$(acmesh_json_escape "$email")" \
-		"$test_mode" \
 		"$(acmesh_json_escape "$core_tag")" \
 		"$(acmesh_json_escape "$home")"
 }

@@ -71,6 +71,7 @@ return view.extend({
 		const config = results[2] || {};
 		config.global = config.global || {};
 		const global = config.global;
+		delete global.testMode;
 		const deps = core.dependencies || {};
 		let certs = Array.isArray(data.certificates) ? data.certificates : [];
 		const deployProfiles = Array.isArray(config.deployProfiles) ? config.deployProfiles : [];
@@ -202,7 +203,7 @@ return view.extend({
 
 		const prepareDeploy = function(profile, cert) {
 			return {
-				method: global.testMode === false ? 'deploy_run' : 'deploy_test',
+				method: 'deploy_run',
 				payload: { profileId: profile.id },
 				profile: profile
 			};
@@ -215,9 +216,8 @@ return view.extend({
 			[ 'v3.0.9', 'v3.0.9' ]
 		];
 
-		const saveCoreDefaults = function(email, testMode, acmeHome, tagList) {
+		const saveCoreDefaults = function(email, acmeHome, tagList) {
 			global.defaultAccountEmail = email.value.trim();
-			global.testMode = !!testMode.checked;
 			global.acmeHome = acmeHome.value.trim() || '/etc/acme';
 			global.coreTag = tagList.value || 'v3.1.4';
 			return saveConfig();
@@ -242,7 +242,7 @@ return view.extend({
 			return acmeshApi.write('renew', {
 				domain: cert.mainDomain || '',
 				keyType: cert.keyType || '',
-				testMode: global.testMode !== false
+				testMode: false
 			}).then(showTask);
 		};
 
@@ -266,7 +266,7 @@ return view.extend({
 
 		const renderSummary = function() {
 			const email = input(global.defaultAccountEmail || '', 'name@example.com');
-			const testMode = E('input', { 'type': 'checkbox', 'checked': global.testMode !== false ? 'checked' : null });
+			const testMode = E('input', { 'type': 'checkbox' });
 			const acmeHome = input(global.acmeHome || core.home || data.home || '/etc/acme', '/etc/acme');
 			const tagList = select(global.coreTag || 'v3.1.4', coreTagChoices);
 
@@ -279,22 +279,22 @@ return view.extend({
 					editablePanel(_('acme.sh home'), acmeHome),
 					editablePanel(_('Default account email'), email),
 					versionPanel(_('Core tag candidates'), tagList, core.version),
-					modePanel(_('Mode'), E('span', { 'class': 'acmesh-inline' }, [ testMode, E('span', {}, _('Global Test Mode')) ])),
+					modePanel(_('Mode'), E('span', { 'class': 'acmesh-inline' }, [ testMode, E('span', {}, _('Test this core action')) ])),
 					E('div', { 'class': 'acmesh-primary-actions acmesh-summary-actions' }, [
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								taskBox.textContent = res.ok ? 'OK' : (res.error || _('Unable to save config'));
 							});
 						}) }, _('Save defaults')),
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
 								return acmeshApi.write('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
 							});
 						}) }, _('Install selected tag')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
 								return acmeshApi.write('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);

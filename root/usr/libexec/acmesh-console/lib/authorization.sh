@@ -104,6 +104,7 @@ acmesh_auth_emit_issue() {
 	acmesh_canon_string validationMethod "${ACMESH_AUTH_VALIDATION-}" || return $?
 	acmesh_auth_emit_optional dnsApi "${ACMESH_AUTH_DNS_API-}" || return $?
 	acmesh_auth_emit_optional credentialMode "${ACMESH_AUTH_CREDENTIAL_MODE-}" || return $?
+	acmesh_canon_array credentialKeys "${ACMESH_AUTH_CREDENTIAL_KEYS-}" || return $?
 	acmesh_auth_emit_optional challengeAlias "${ACMESH_AUTH_CHALLENGE_ALIAS-}" || return $?
 	acmesh_canon_string dnsSleep "${ACMESH_AUTH_DNS_SLEEP:-0}" || return $?
 	acmesh_auth_emit_optional webroot "${ACMESH_AUTH_WEBROOT-}" || return $?
@@ -148,6 +149,7 @@ acmesh_auth_emit_core() {
 	acmesh_canon_string sourceRepository "${ACMESH_AUTH_SOURCE_REPOSITORY:-acmesh-official/acme.sh}" || return $?
 	acmesh_canon_string acmeHome "${ACMESH_AUTH_ACME_HOME-}" || return $?
 	acmesh_canon_string tag "${ACMESH_AUTH_CORE_TAG-}" || return $?
+	case "${operation-}" in core-install) acmesh_auth_emit_optional accountEmail "${ACMESH_AUTH_CORE_EMAIL-}" || return $?;; esac
 	acmesh_canon_string backupPolicy "${ACMESH_AUTH_BACKUP_POLICY:-rollback-v1}" || return $?
 }
 
@@ -383,11 +385,16 @@ acmesh_auth_prepare_locked() {
 	while [ "$(acmesh_auth_json_type "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i]")" = object ]; do
 		if [ "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].fingerprint")" = "$fingerprint" ] && [ "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].operation")" = "$operation" ]; then
 			acmesh_auth_rewrite_locked reuse '' '' '' '' "$fingerprint" "$now" || return 1
+			ACMESH_OPERATION_FINGERPRINT="$fingerprint"; export ACMESH_OPERATION_FINGERPRINT
 			acmesh_auth_admit "$operation" "$subject_type" "$subject_id" remembered || return 1
 			printf '{"ok":true,"authorized":true,"remembered":true}\n'; return 0
 		fi
 		i=$((i + 1))
 	done
+	if [ "${ACMESH_AUTH_REQUIRE_REMEMBERED:-0}" = 1 ]; then
+		printf '{"ok":false,"error":"rememberedAuthorizationRequired"}\n'
+		return 4
+	fi
 	acmesh_auth_create_challenge_locked "$operation" "$subject_type" "$subject_id" "$snapshot" "$summary" "$now"
 }
 
@@ -414,6 +421,21 @@ acmesh_auth_prepare() {
 	acmesh_auth_lock_run acmesh_auth_prepare_locked "$1" "$2" "$3" "$4" "$5" "$now"
 }
 
+acmesh_auth_is_remembered_locked() {
+	operation="$1" fingerprint="$2"; acmesh_auth_ledger_load_locked || return 1
+	i=0
+	while [ "$(acmesh_auth_json_type "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i]")" = object ]; do
+		[ "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].operation")" != "$operation" ] || \
+			[ "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].fingerprint")" != "$fingerprint" ] || return 0
+		i=$((i + 1))
+	done
+	return 1
+}
+acmesh_auth_is_remembered() {
+	[ "$#" = 2 ] || return 2
+	if [ "${acmesh_auth_lock_held:-0}" = 1 ]; then acmesh_auth_is_remembered_locked "$@"; else acmesh_auth_lock_run acmesh_auth_is_remembered_locked "$@"; fi
+}
+
 acmesh_auth_execute_locked() {
 	id="$1" decision="$2" now="$3"; path="$ACMESH_AUTH_CHALLENGE_DIR/$id.json"; consuming="$path.consuming"
 	[ -f "$path" ] && [ ! -L "$path" ] && acmesh_private_file_is_secure "$path" || { printf '{"ok":false,"error":"authorizationConsumedOrMissing"}\n'; return 4; }
@@ -428,6 +450,8 @@ acmesh_auth_execute_locked() {
 	expires="$(acmesh_auth_json_get "$consuming" '@.expiresAt')"; case "$expires" in ''|*[!0-9]*) cleanup_consuming; return 4 ;; esac
 	[ "$now" -lt "$expires" ] || { rm -f "$consuming"; trap - HUP INT TERM EXIT; printf '{"ok":false,"error":"authorizationExpired"}\n'; return 4; }
 	operation="$(acmesh_auth_json_get "$consuming" '@.operation')"; subject_type="$(acmesh_auth_json_get "$consuming" '@.subjectType')"; subject_id="$(acmesh_auth_json_get "$consuming" '@.subjectId')"
+	ACMESH_AUTH_EXECUTED_OPERATION="$operation" ACMESH_AUTH_EXECUTED_SUBJECT_TYPE="$subject_type" ACMESH_AUTH_EXECUTED_SUBJECT_ID="$subject_id"
+	export ACMESH_AUTH_EXECUTED_OPERATION ACMESH_AUTH_EXECUTED_SUBJECT_TYPE ACMESH_AUTH_EXECUTED_SUBJECT_ID
 	tmpdir="$ACMESH_AUTH_CHALLENGE_DIR/.recompute.$id"; acmesh_private_dir "$tmpdir" || return 1
 	snapshot="$tmpdir/snapshot"; summary="$tmpdir/summary"
 	if ! acmesh_auth_call_recompute "$operation" "$subject_type" "$subject_id" "$snapshot" "$summary"; then cleanup_consuming; return 1; fi
@@ -442,6 +466,7 @@ acmesh_auth_execute_locked() {
 	fi
 	load_rc=0; acmesh_auth_ledger_load_locked || load_rc=$?; [ "$load_rc" = 0 ] || { cleanup_consuming; return 1; }
 	if [ "$decision" = remember ] && ! acmesh_auth_rewrite_locked upsert '' "$operation" "$subject_type" "$subject_id" "$current" "$now"; then cleanup_consuming; return 1; fi
+	ACMESH_OPERATION_FINGERPRINT="$current"; export ACMESH_OPERATION_FINGERPRINT
 	acmesh_auth_admit "$operation" "$subject_type" "$subject_id" "$decision" || { cleanup_consuming; return 1; }
 	cleanup_consuming
 	printf '{"ok":true,"authorized":true,"remembered":%s}\n' "$([ "$decision" = remember ] && printf true || printf false)"

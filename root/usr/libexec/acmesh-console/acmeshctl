@@ -12,6 +12,7 @@ LIB_DIR="${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}"
 . "$LIB_DIR/config.sh"
 . "$LIB_DIR/request_payload.sh"
 . "$LIB_DIR/authorization.sh"
+. "$LIB_DIR/operation.sh"
 
 cmd="${1:-}"
 shift || true
@@ -78,21 +79,26 @@ load_issue_request() {
 acmesh_run_issue_profile() (
 	profile_id="$1" resolved_file="$2" profile_home="$3"
 	acmesh_profile_install_cleanup_traps "$resolved_file"
-	acmesh_profile_resolve_issue "$profile_id" "$resolved_file" || return 1
+	if [ "${ACMESH_OPERATION_USE_RESOLVED:-0}" != 1 ]; then acmesh_profile_resolve_issue "$profile_id" "$resolved_file" || return 1; fi
 	acmesh_profile_load_issue_file "$resolved_file" || return 1
 	log_credentials="$(acmesh_redact_credentials "$ACMESH_PROFILE_CREDENTIALS")"
 	command="$(acmesh_build_issue_command "$profile_home" "$ACMESH_PROFILE_DOMAIN" "$ACMESH_PROFILE_KEY_TYPE" "$ACMESH_PROFILE_VALIDATION" "$ACMESH_PROFILE_DNS_API" "$ACMESH_PROFILE_WEBROOT" "$ACMESH_PROFILE_LISTEN_PORT" "$log_credentials" "$ACMESH_PROFILE_CA" "$ACMESH_PROFILE_ACCOUNT_EMAIL" "$ACMESH_PROFILE_DOMAINS" "$ACMESH_PROFILE_CHALLENGE_ALIAS" "$ACMESH_PROFILE_DNS_SLEEP")"
 	if [ "$ACMESH_PROFILE_TEST_MODE" = true ]; then
 		printf '%s\n%s\n' 'TEST MODE: generated acme.sh command, but no real ACME request was sent.' "$(acmesh_mask_secret "$command")"
 	else
-		acmesh_execute_issue "$profile_home" "$ACMESH_PROFILE_DOMAIN" "$ACMESH_PROFILE_KEY_TYPE" "$ACMESH_PROFILE_VALIDATION" "$ACMESH_PROFILE_DNS_API" "$ACMESH_PROFILE_WEBROOT" "$ACMESH_PROFILE_LISTEN_PORT" "$ACMESH_PROFILE_CREDENTIALS" "$ACMESH_PROFILE_CA" "$ACMESH_PROFILE_ACCOUNT_EMAIL" "$ACMESH_PROFILE_DOMAINS" "$ACMESH_PROFILE_CHALLENGE_ALIAS" "$ACMESH_PROFILE_DNS_SLEEP"
+		acmesh_execute_issue "$profile_home" "$ACMESH_PROFILE_DOMAIN" "$ACMESH_PROFILE_KEY_TYPE" "$ACMESH_PROFILE_VALIDATION" "$ACMESH_PROFILE_DNS_API" "$ACMESH_PROFILE_WEBROOT" "$ACMESH_PROFILE_LISTEN_PORT" "$ACMESH_PROFILE_CREDENTIALS" "$ACMESH_PROFILE_CA" "$ACMESH_PROFILE_ACCOUNT_EMAIL" "$ACMESH_PROFILE_DOMAINS" "$ACMESH_PROFILE_CHALLENGE_ALIAS" "$ACMESH_PROFILE_DNS_SLEEP" || return $?
+		deploy_id="$(jsonfilter -i "$resolved_file" -e '@.deployProfileId' 2>/dev/null || true)"
+		if [ -n "$deploy_id" ]; then
+			script="$(acmesh_find_script "$profile_home")" || return 1
+			ACMESH_DEPLOY_PROFILE_ID="$deploy_id" "$script" --home "$profile_home" --deploy -d "$ACMESH_PROFILE_DOMAIN" --deploy-hook acmesh-console-ssh
+		fi
 	fi
 )
 
 acmesh_run_deploy_profile() (
 	profile_id="$1" resolved_file="$2"
 	acmesh_profile_install_cleanup_traps "$resolved_file"
-	acmesh_profile_resolve_deploy "$profile_id" "$resolved_file" || return 1
+	if [ "${ACMESH_OPERATION_USE_RESOLVED:-0}" != 1 ]; then acmesh_profile_resolve_deploy "$profile_id" "$resolved_file" || return 1; fi
 	acmesh_profile_load_deploy_file "$resolved_file" || return 1
 	acmesh_execute_profile_deploy "$ACMESH_DEPLOY_TYPE" "$ACMESH_DEPLOY_CERT_SOURCE" "$ACMESH_DEPLOY_DOMAIN" \
 		"$ACMESH_DEPLOY_KEY_FILE" "$ACMESH_DEPLOY_CHAIN_FILE" "$ACMESH_DEPLOY_CERT_FILE" "$ACMESH_DEPLOY_CA_FILE" "$ACMESH_DEPLOY_RELOAD" \
@@ -148,7 +154,7 @@ case "$cmd" in
 	renew)
 		main_domain=""
 		key_type=""
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--domain) main_domain="$2"; shift 2 ;;
@@ -168,19 +174,10 @@ case "$cmd" in
 			exit 1
 		fi
 		if [ "$test_mode" = 1 ] || [ "$test_mode" = true ]; then
-			task_id="$(acmesh_task_create renew-test)"
-			(
-				acmesh_task_run "$task_id" renew-test test-mode printf '%s\n%s' \
-					"TEST MODE: generated acme.sh renew command, but no real ACME request was sent." \
-					"$(acmesh_build_renew_command "$home" "$main_domain" "$key_type")"
-			) &
-			printf '{"ok":true,"testMode":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			printf '{"ok":true,"testMode":true,"command":"%s"}\n' "$(acmesh_json_escape "$(acmesh_build_renew_command "$home" "$main_domain" "$key_type")")"
 		else
-			task_id="$(acmesh_task_create renew)"
-			(
-				acmesh_task_run "$task_id" renew acme-sh acmesh_execute_renew "$home" "$main_domain" "$key_type"
-			) &
-			printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			if acmesh_key_type_is_ecc "$key_type"; then renew_subject="ecc.$main_domain"; else renew_subject="rsa.$main_domain"; fi
+			acmesh_operation_start renew certificate "$renew_subject" "$request_file"
 		fi
 		;;
 	import-history)
@@ -249,7 +246,7 @@ case "$cmd" in
 	core-install)
 		email="$(acmesh_config_string defaultAccountEmail "")"
 		tag="$(acmesh_config_string coreTag "${ACMESH_CORE_TAG:-v3.1.4}")"
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--email) email="$2"; shift 2 ;;
@@ -267,24 +264,16 @@ case "$cmd" in
 			export ACMESH_ACME_HOME="$home"
 		fi
 		if [ "$test_mode" = 1 ] || [ "$test_mode" = true ]; then
-			task_id="$(acmesh_task_create core-install-test)"
-			(
-				acmesh_task_run "$task_id" core-install-test test-mode printf '%s\n%s' \
-					"TEST MODE: generated official acme.sh install command, but did not download or install anything." \
-					"$(acmesh_core_install_command "$home" "$email" "$tag")"
-			) &
-			printf '{"ok":true,"testMode":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			printf '{"ok":true,"testMode":true,"command":"%s"}\n' "$(acmesh_json_escape "$(acmesh_core_install_command "$home" "$email" "$tag")")"
 		else
-			task_id="$(acmesh_task_create core-install)"
-			(
-				acmesh_task_run "$task_id" core-install install acmesh_execute_core_install "$home" "$email" "$tag"
-			) &
-			printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			config_home="$(acmesh_config_string acmeHome /etc/acme)" config_email="$(acmesh_config_string defaultAccountEmail '')" config_tag="$(acmesh_config_string coreTag "${ACMESH_CORE_TAG:-v3.1.4}")"
+			[ "$home" = "$config_home" ] && [ "$email" = "$config_email" ] && [ "$tag" = "$config_tag" ] || { printf '{"ok":false,"error":"real core install parameters must match saved configuration"}\n'; exit 2; }
+			acmesh_operation_start core-install global core "$request_file"
 		fi
 		;;
 	core-upgrade)
 		tag="$(acmesh_config_string coreTag "${ACMESH_CORE_TAG:-v3.1.4}")"
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--tag) tag="$2"; shift 2 ;;
@@ -300,17 +289,11 @@ case "$cmd" in
 			export ACMESH_ACME_HOME="$home"
 		fi
 		if [ "$test_mode" = 1 ] || [ "$test_mode" = true ]; then
-			task_id="$(acmesh_task_create core-upgrade-test)"
-			(
-				acmesh_task_run "$task_id" core-upgrade-test test-mode acmesh_core_upgrade_test_log "$home" "$tag"
-			) &
-			printf '{"ok":true,"testMode":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			printf '{"ok":true,"testMode":true,"command":"%s"}\n' "$(acmesh_json_escape "$(acmesh_core_upgrade_command "$home" "$tag")")"
 		else
-			task_id="$(acmesh_task_create core-upgrade)"
-			(
-				acmesh_task_run "$task_id" core-upgrade upgrade acmesh_execute_core_upgrade "$home" "$tag"
-			) &
-			printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			config_home="$(acmesh_config_string acmeHome /etc/acme)" config_tag="$(acmesh_config_string coreTag "${ACMESH_CORE_TAG:-v3.1.4}")"
+			[ "$home" = "$config_home" ] && [ "$tag" = "$config_tag" ] || { printf '{"ok":false,"error":"real core upgrade parameters must match saved configuration"}\n'; exit 2; }
+			acmesh_operation_start core-upgrade global core "$request_file"
 		fi
 		;;
 	deploy-preview)
@@ -398,11 +381,10 @@ case "$cmd" in
 			esac
 		done
 		[ -z "$request_file" ] || load_deploy_request
-		task_id="$(acmesh_task_create deploy-test)"
-		(
-			acmesh_task_run "$task_id" deploy-test test-mode acmesh_deploy_test_log "$deploy_type" "$cert_source" "$domain" "$key_file" "$fullchain_file" "$cert_file" "$ca_file" "$reloadcmd" "$source_key_file" "$source_fullchain_file" "$key_pem" "$fullchain_pem" "$host" "$port" "$user" "$ssh_key" "$key_type"
-		) &
-		printf '{"ok":true,"testMode":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+		case "$deploy_type" in local|ssh) ;; *) printf '{"ok":false,"error":"unsupported deploy type"}\n'; exit 2 ;; esac
+		case "$cert_source" in managed-acme|local-files|paste-pem) ;; *) printf '{"ok":false,"error":"unsupported certificate source"}\n'; exit 2 ;; esac
+		[ -n "$domain" ] || { printf '{"ok":false,"error":"domain is required"}\n'; exit 2; }
+		printf '{"ok":true,"testMode":true,"preview":"validated; no task or external mutation created"}\n'
 		;;
 	deploy-run)
 		profile_id=""
@@ -454,32 +436,16 @@ case "$cmd" in
 		fi
 		if [ -n "$profile_id" ]; then
 			acmesh_profile_validate_id "$profile_id" || { printf '{"ok":false,"error":"invalid deploy profile id"}\n'; exit 2; }
-			task_id="$(acmesh_task_create deploy-profile)"
-			workspace="$(acmesh_task_workspace "$task_id")" || exit 1
-			resolved_file="$workspace/deploy-profile.json"
-			acmesh_profile_resolve_deploy "$profile_id" "$resolved_file" || { printf '{"ok":false,"error":"deploy profile resolution failed"}\n'; exit 2; }
-			rm -f -- "$resolved_file"
-			(
-				ACMESH_DEPLOY_ALLOW_KEY_CONVERT="$allow_key_convert"
-				export ACMESH_DEPLOY_ALLOW_KEY_CONVERT
-				acmesh_task_run "$task_id" deploy-run deploy acmesh_run_deploy_profile "$profile_id" "$resolved_file"
-			) &
-			printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+			acmesh_operation_start deploy-run deployProfile "$profile_id" "$request_file"
 			exit 0
 		fi
-		task_id="$(acmesh_task_create deploy-run)"
-		(
-			ACMESH_DEPLOY_ALLOW_KEY_CONVERT="$allow_key_convert"
-			export ACMESH_DEPLOY_ALLOW_KEY_CONVERT
-			acmesh_task_run "$task_id" deploy-run deploy acmesh_execute_profile_deploy "$deploy_type" "$cert_source" "$domain" "$key_file" "$fullchain_file" "$cert_file" "$ca_file" "$reloadcmd" "$source_key_file" "$source_fullchain_file" "$key_pem" "$fullchain_pem" "$host" "$port" "$user" "$ssh_key" "$key_type"
-		) &
-		printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"
+		printf '{"ok":false,"error":"real deploy requires profileId"}\n'; exit 2
 		;;
 	dns-test)
 		main_domain=""
 		dns_api="dns_cf"
 		credentials=""
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--domain) main_domain="$2"; shift 2 ;;
@@ -518,7 +484,7 @@ case "$cmd" in
 		credentials=""
 		ca="letsencrypt"
 		account_email="$(acmesh_config_string defaultAccountEmail "")"
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--domain) main_domain="$2"; shift 2 ;;
@@ -557,7 +523,7 @@ case "$cmd" in
 		credentials=""
 		ca="letsencrypt"
 		account_email="$(acmesh_config_string defaultAccountEmail "")"
-		test_mode="$(acmesh_config_bool testMode true)"
+		test_mode=false
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--profile-id) profile_id="$2"; shift 2 ;;
@@ -582,28 +548,21 @@ case "$cmd" in
 		fi
 		if [ -n "$profile_id" ]; then
 			acmesh_profile_validate_id "$profile_id" || { printf '{"ok":false,"error":"invalid issue profile id"}\n'; exit 2; }
-			task_id="$(acmesh_task_create issue-profile)"
-			workspace="$(acmesh_task_workspace "$task_id")" || exit 1
-			resolved_file="$workspace/issue-profile.json"
+			workspace="${TMPDIR:-/tmp}/acmesh-issue-preview.$$"; acmesh_private_dir "$workspace" || exit 1; resolved_file="$workspace/issue-profile.json"
 			acmesh_profile_resolve_issue "$profile_id" "$resolved_file" || { printf '{"ok":false,"error":"issue profile resolution failed"}\n'; exit 2; }
 			acmesh_profile_load_issue_file "$resolved_file" || exit 1
 			profile_test_mode="$ACMESH_PROFILE_TEST_MODE"
-			rm -f -- "$resolved_file"
-			(
-				if [ "$profile_test_mode" = true ]; then
-					acmesh_task_run "$task_id" issue-test test-mode acmesh_run_issue_profile "$profile_id" "$resolved_file" "$home"
-				else
-					acmesh_task_run "$task_id" issue acme-sh acmesh_run_issue_profile "$profile_id" "$resolved_file" "$home"
-				fi
-			) &
-			if [ "$profile_test_mode" = true ]; then printf '{"ok":true,"testMode":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"; else printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$task_id")"; fi
+			if [ "$profile_test_mode" = true ]; then
+				command="$(acmesh_build_issue_command "$home" "$ACMESH_PROFILE_DOMAIN" "$ACMESH_PROFILE_KEY_TYPE" "$ACMESH_PROFILE_VALIDATION" "$ACMESH_PROFILE_DNS_API" "$ACMESH_PROFILE_WEBROOT" "$ACMESH_PROFILE_LISTEN_PORT" "$(acmesh_redact_credentials "$ACMESH_PROFILE_CREDENTIALS")" "$ACMESH_PROFILE_CA" "$ACMESH_PROFILE_ACCOUNT_EMAIL" "$ACMESH_PROFILE_DOMAINS" "$ACMESH_PROFILE_CHALLENGE_ALIAS" "$ACMESH_PROFILE_DNS_SLEEP")"
+				printf '{"ok":true,"testMode":true,"command":"%s"}\n' "$(acmesh_json_escape "$(acmesh_mask_secret "$command")")"
+			else acmesh_operation_start issue issueProfile "$profile_id" "$request_file"; fi
+			rm -rf "$workspace"
 			exit 0
 		fi
 		if [ "$test_mode" = 1 ] || [ "$test_mode" = true ]; then
-			task_id="$(acmesh_task_create issue-test)"
+			printf '{"ok":true,"testMode":true,"command":"%s"}\n' "$(acmesh_json_escape "$(acmesh_build_issue_command "$home" "$main_domain" "$key_type" "$validation_method" "$dns_api" "$webroot" "$listen_port" "$(acmesh_redact_credentials "$credentials")" "$ca" "$account_email")")"; exit 0
 		else
-			[ -n "$account_email" ] || { printf '{"ok":false,"error":"account email is required for real mode"}\n'; exit 1; }
-			task_id="$(acmesh_task_create issue)"
+			printf '{"ok":false,"error":"real issue requires profileId"}\n'; exit 2
 		fi
 		(
 			log_credentials="$(acmesh_redact_credentials "$credentials")"
@@ -626,7 +585,11 @@ case "$cmd" in
 		printf '{"ok":false,"error":"not implemented"}\n'
 		exit 2
 		;;
-	secret-export|ssh-hostkey-probe|ssh-hostkey-confirm|authorization-execute|authorization-revoke|authorization-revoke-all|certificate-revoke|certificate-remove|profile-delete)
+	authorization-execute)
+		[ -n "$request_file" ] || { printf '{"ok":false,"error":"request required"}\n'; exit 2; }
+		acmesh_operation_execute_challenge "$request_file"
+		;;
+	secret-export|ssh-hostkey-probe|ssh-hostkey-confirm|authorization-revoke|authorization-revoke-all|certificate-revoke|certificate-remove|profile-delete)
 		printf '{"ok":false,"error":"not implemented"}\n'
 		exit 2
 		;;
