@@ -10,6 +10,10 @@ acmesh_operation_subject_type() {
 		deploy-run) printf '%s\n' deployProfile ;;
 		core-install|core-upgrade) printf '%s\n' global ;;
 		ssh-key-convert) printf '%s\n' sshKey ;;
+		import-apply) printf '%s\n' pendingImport ;;
+		secret-export) printf '%s\n' config ;;
+		certificate-revoke|certificate-remove) printf '%s\n' certificate ;;
+		profile-delete) printf '%s\n' profile ;;
 		*) return 2 ;;
 	esac
 }
@@ -24,6 +28,8 @@ acmesh_operation_snapshot_reset() {
 	unset ACMESH_AUTH_HOSTKEY_FINGERPRINT ACMESH_AUTH_KEY_FILE ACMESH_AUTH_FULLCHAIN_FILE ACMESH_AUTH_CERT_FILE ACMESH_AUTH_CA_FILE
 	unset ACMESH_AUTH_RELOAD ACMESH_AUTH_SUDO_MODE ACMESH_AUTH_OWNER ACMESH_AUTH_GROUP ACMESH_AUTH_MODE ACMESH_AUTH_ACME_HOME ACMESH_AUTH_CORE_TAG ACMESH_AUTH_CORE_EMAIL
 	unset ACMESH_AUTH_PUBLIC_IDENTITY_DIGEST ACMESH_AUTH_SOURCE_FORMAT ACMESH_AUTH_TARGET_CLIENT ACMESH_AUTH_TARGET_FORMAT
+	unset ACMESH_AUTH_CONFIG_DIGEST ACMESH_AUTH_OVERWRITE_MODE ACMESH_AUTH_EXPORT_SCOPE
+	unset ACMESH_AUTH_OBJECT_IDENTITY ACMESH_AUTH_OBJECT_DIGEST ACMESH_AUTH_VARIANT
 	unset ACMESH_OPERATION_USES_ONCE_CONVERSION ACMESH_OPERATION_CONVERSION_FINGERPRINT ACMESH_OPERATION_RESOLVED_FILE
 }
 
@@ -165,6 +171,33 @@ acmesh_operation_recompute() {
 			ACMESH_AUTH_ACME_HOME="$(acmesh_config_string acmeHome /etc/acme)" ACMESH_AUTH_CORE_TAG="$(acmesh_config_string coreTag "${ACMESH_CORE_TAG:-v3.1.4}")" ACMESH_AUTH_CORE_EMAIL="$(acmesh_config_string defaultAccountEmail '')"
 			export ACMESH_AUTH_ACME_HOME ACMESH_AUTH_CORE_TAG ACMESH_AUTH_CORE_EMAIL
 			acmesh_auth_snapshot "$operation" global "$subject_id" "$snapshot" && acmesh_auth_summary "$snapshot" "$summary" ;;
+		import-apply:pendingImport)
+			acmesh_operation_snapshot_reset
+			candidate="${snapshot}.candidate"; acmesh_config_pending_candidate "$subject_id" "$candidate" || return 1
+			ACMESH_AUTH_CONFIG_DIGEST="$subject_id" ACMESH_AUTH_OVERWRITE_MODE=replace
+			export ACMESH_AUTH_CONFIG_DIGEST ACMESH_AUTH_OVERWRITE_MODE
+			acmesh_auth_snapshot import-apply pendingImport "$subject_id" "$snapshot" && acmesh_auth_summary "$snapshot" "$summary" ;;
+		secret-export:config)
+			acmesh_operation_snapshot_reset
+			config_path="$(acmesh_config_path)"; [ -f "$config_path" ] && [ ! -L "$config_path" ] && acmesh_config_validate_file "$config_path" || return 1
+			ACMESH_AUTH_CONFIG_DIGEST="$(sha256sum "$config_path" | awk '{print $1}')" ACMESH_AUTH_EXPORT_SCOPE=config-with-secrets
+			export ACMESH_AUTH_CONFIG_DIGEST ACMESH_AUTH_EXPORT_SCOPE
+			acmesh_auth_snapshot secret-export config "$subject_id" "$snapshot" && acmesh_auth_summary "$snapshot" "$summary" ;;
+		certificate-revoke:certificate|certificate-remove:certificate)
+			acmesh_operation_snapshot_reset
+			case "$subject_id" in ecc.*) destructive_domain="${subject_id#ecc.}"; destructive_variant=ecc;; rsa.*) destructive_domain="${subject_id#rsa.}"; destructive_variant=rsa;; *) return 2;; esac
+			destructive_dir="$ACMESH_ACME_HOME/$destructive_domain"; [ "$destructive_variant" = ecc ] && destructive_dir="${destructive_dir}_ecc"
+			destructive_conf="$destructive_dir/$destructive_domain.conf"; [ -f "$destructive_conf" ] && [ ! -L "$destructive_conf" ] || return 1
+			ACMESH_AUTH_OBJECT_IDENTITY="$destructive_domain" ACMESH_AUTH_VARIANT="$destructive_variant" ACMESH_AUTH_OBJECT_DIGEST="$(sha256sum "$destructive_conf" | awk '{print $1}')"
+			export ACMESH_AUTH_OBJECT_IDENTITY ACMESH_AUTH_VARIANT ACMESH_AUTH_OBJECT_DIGEST
+			acmesh_auth_snapshot "$operation" certificate "$subject_id" "$snapshot" && acmesh_auth_summary "$snapshot" "$summary" ;;
+		profile-delete:profile)
+			acmesh_operation_snapshot_reset
+			case "$subject_id" in account.*) profile_kind=account; profile_id="${subject_id#account.}";; issue.*) profile_kind=issue; profile_id="${subject_id#issue.}";; deploy.*) profile_kind=deploy; profile_id="${subject_id#deploy.}";; *) return 2;; esac
+			acmesh_profile_validate_id "$profile_id" && acmesh_config_profile_exists "$profile_kind" "$profile_id" || return 1
+			ACMESH_AUTH_OBJECT_IDENTITY="$profile_id" ACMESH_AUTH_VARIANT="$profile_kind" ACMESH_AUTH_CONFIG_DIGEST="$(sha256sum "$(acmesh_config_path)" | awk '{print $1}')"
+			export ACMESH_AUTH_OBJECT_IDENTITY ACMESH_AUTH_VARIANT ACMESH_AUTH_CONFIG_DIGEST
+			acmesh_auth_snapshot profile-delete profile "$subject_id" "$snapshot" && acmesh_auth_summary "$snapshot" "$summary" ;;
 		*) return 2 ;;
 	esac
 }
@@ -198,10 +231,34 @@ acmesh_operation_admit() {
 			( acmesh_task_run "$task_id" renew acme-sh acmesh_operation_run_renew "$subject_id" "$ACMESH_OPERATION_FINGERPRINT" "$workspace" ) & ;;
 		core-install:global) task_id="$(acmesh_task_create core-install)"; ( acmesh_task_run "$task_id" core-install install acmesh_execute_core_install "$ACMESH_AUTH_ACME_HOME" "$ACMESH_AUTH_CORE_EMAIL" "$ACMESH_AUTH_CORE_TAG" ) & ;;
 		core-upgrade:global) task_id="$(acmesh_task_create core-upgrade)"; ( acmesh_task_run "$task_id" core-upgrade upgrade acmesh_execute_core_upgrade "$ACMESH_AUTH_ACME_HOME" "$ACMESH_AUTH_CORE_TAG" ) & ;;
+		import-apply:pendingImport)
+			[ "$decision" = once ] || return 2
+			ACMESH_OPERATION_TASK_ID=; export ACMESH_OPERATION_TASK_ID; return 0 ;;
+		secret-export:config)
+			ACMESH_OPERATION_TASK_ID=; export ACMESH_OPERATION_TASK_ID; return 0 ;;
+		certificate-revoke:certificate|certificate-remove:certificate)
+			task_id="$(acmesh_task_create "$operation")"; workspace="$(acmesh_task_workspace "$task_id")"
+			( acmesh_task_run "$task_id" "$operation" acme-sh acmesh_operation_run_certificate_destructive "$operation" "$subject_id" "$ACMESH_OPERATION_FINGERPRINT" "$workspace" ) & ;;
+		profile-delete:profile)
+			[ "$decision" = once ] || return 2
+			ACMESH_OPERATION_TASK_ID=; export ACMESH_OPERATION_TASK_ID; return 0 ;;
 		*) return 2 ;;
 	esac
 	ACMESH_OPERATION_TASK_ID="$task_id"
 	export ACMESH_OPERATION_TASK_ID
+}
+
+acmesh_operation_direct_dispatch() {
+	operation="$1" subject_id="$2"
+	case "$operation" in
+		import-apply) acmesh_config_apply_pending "$subject_id" || return 1; printf '{"ok":true,"authorized":true,"applied":true,"configDigest":"%s"}\n' "$subject_id" ;;
+		secret-export) acmesh_config_secret_export_expected "$ACMESH_AUTH_CONFIG_DIGEST" ;;
+		profile-delete)
+			case "$subject_id" in account.*) profile_kind=account; profile_id="${subject_id#account.}";; issue.*) profile_kind=issue; profile_id="${subject_id#issue.}";; deploy.*) profile_kind=deploy; profile_id="${subject_id#deploy.}";; *) return 2;; esac
+			acmesh_config_delete_profile "$profile_kind" "$profile_id" "$ACMESH_AUTH_CONFIG_DIGEST"
+			;;
+		*) return 2;;
+	esac
 }
 
 acmesh_operation_run_renew() {
@@ -217,6 +274,21 @@ acmesh_operation_run_renew_locked() {
 	[ "$(acmesh_auth_fingerprint "$snapshot")" = "$expected" ] || { echo "renew authorization identity changed before execution" >&2; return 1; }
 	case "$subject_id" in ecc.*) renew_domain="${subject_id#ecc.}"; renew_key=ecc;; rsa.*) renew_domain="${subject_id#rsa.}"; renew_key=rsa;; *) renew_domain="$subject_id"; renew_key=rsa;; esac
 	acmesh_execute_renew "$ACMESH_ACME_HOME" "$renew_domain" "$renew_key"
+}
+
+acmesh_operation_run_certificate_destructive() {
+	operation="$1" subject_id="$2" expected="$3" workspace="$4"
+	lock_id="$(printf '%s\n' "$ACMESH_ACME_HOME:$subject_id" | sha256sum | awk '{print $1}')"
+	acmesh_lock_run "${ACMESH_RUNTIME_DIR:-/var/run/acmesh-console}/certificate-locks/$lock_id.lock" acmesh_operation_run_certificate_destructive_locked "$operation" "$subject_id" "$expected" "$workspace"
+}
+
+acmesh_operation_run_certificate_destructive_locked() {
+	operation="$1" subject_id="$2" expected="$3" workspace="$4"; snapshot="$workspace/final.snapshot" summary="$workspace/final-summary.json"
+	acmesh_operation_recompute "$operation" certificate "$subject_id" "$snapshot" "$summary" || return 1
+	[ "$(acmesh_auth_fingerprint "$snapshot")" = "$expected" ] || { echo "certificate identity changed before destructive execution" >&2; return 1; }
+	case "$subject_id" in ecc.*) domain="${subject_id#ecc.}"; key_type=ecc;; rsa.*) domain="${subject_id#rsa.}"; key_type=rsa;; *) return 2;; esac
+	case "$operation" in certificate-revoke) action=revoke;; certificate-remove) action=remove;; *) return 2;; esac
+	acmesh_execute_certificate_destructive "$ACMESH_ACME_HOME" "$action" "$domain" "$key_type"
 }
 
 acmesh_operation_is_remembered() {
@@ -235,6 +307,7 @@ acmesh_operation_start() {
 	[ "$(acmesh_operation_subject_type "$op_start_operation")" = "$op_start_subject_type" ] || return 2
 	op_start_tmp="${ACMESH_AUTH_CHALLENGE_DIR}/.prepare.$$.$(date +%s)"; acmesh_private_dir "$op_start_tmp" || return 1
 	trap 'rm -rf "$op_start_tmp"' HUP INT TERM EXIT
+	ACMESH_OPERATION_RESPONSE_FILE="$op_start_tmp/result"; export ACMESH_OPERATION_RESPONSE_FILE
 	ACMESH_AUTH_RECOMPUTE_CALLBACK=acmesh_operation_recompute ACMESH_AUTH_ADMIT_CALLBACK=acmesh_operation_admit
 	ACMESH_AUTH_REQUIRE_REMEMBERED="${ACMESH_OPERATION_REQUIRE_REMEMBERED:-0}"
 	export ACMESH_AUTH_RECOMPUTE_CALLBACK ACMESH_AUTH_ADMIT_CALLBACK ACMESH_AUTH_REQUIRE_REMEMBERED
@@ -244,8 +317,9 @@ acmesh_operation_start() {
 		acmesh_operation_start ssh-key-convert sshKey "${ACMESH_OPERATION_CONVERSION_SUBJECT:-$op_start_subject_id}" "$op_start_parameters_file"; return $?
 	fi
 	[ "$recompute_rc" = 0 ] || return "$recompute_rc"
-	rc=0; acmesh_auth_prepare "$op_start_operation" "$op_start_subject_type" "$op_start_subject_id" "$op_start_tmp/snapshot" "$op_start_tmp/summary" > "$op_start_tmp/response" || rc=$?
-	if [ "$rc" = 0 ]; then printf '{"ok":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$ACMESH_OPERATION_TASK_ID")"; else cat "$op_start_tmp/response"; fi
+	rc=0; umask 077; acmesh_auth_prepare "$op_start_operation" "$op_start_subject_type" "$op_start_subject_id" "$op_start_tmp/snapshot" "$op_start_tmp/summary" > "$op_start_tmp/response" || rc=$?; chmod 600 "$op_start_tmp/response" 2>/dev/null || true
+	if [ "$rc" = 0 ]; then case "$op_start_operation" in import-apply|secret-export|profile-delete) acmesh_operation_direct_dispatch "$op_start_operation" "$op_start_subject_id" > "$op_start_tmp/response" || rc=$?;; esac; fi
+	if [ "$rc" = 0 ] && [ -f "$op_start_tmp/result" ]; then cat "$op_start_tmp/result"; else cat "$op_start_tmp/response"; fi
 	rm -rf "$op_start_tmp"; trap - HUP INT TERM EXIT
 	return "$rc"
 }
@@ -255,13 +329,15 @@ acmesh_operation_execute_challenge() {
 	challenge_id="$(acmesh_request_value "$request_file" challengeId '')" decision="$(acmesh_request_value "$request_file" decision '')"
 	acmesh_auth_valid_id "$challenge_id" || { printf '{"ok":false,"error":"invalid authorization challenge"}\n'; return 2; }
 	case "$decision" in once|remember) ;; *) printf '{"ok":false,"error":"invalid authorization decision"}\n'; return 2 ;; esac
+	op_execute_tmp="${ACMESH_AUTH_CHALLENGE_DIR}/.execute.$$.$(date +%s)"; acmesh_private_dir "$op_execute_tmp" || return 1
+	ACMESH_OPERATION_RESPONSE_FILE="$op_execute_tmp/result"; export ACMESH_OPERATION_RESPONSE_FILE
 	ACMESH_AUTH_RECOMPUTE_CALLBACK=acmesh_operation_recompute ACMESH_AUTH_ADMIT_CALLBACK=acmesh_operation_admit
 	export ACMESH_AUTH_RECOMPUTE_CALLBACK ACMESH_AUTH_ADMIT_CALLBACK
-	tmp="${ACMESH_AUTH_CHALLENGE_DIR}/.execute.$$.$(date +%s)"; acmesh_private_dir "$tmp" || return 1
-	rc=0; acmesh_auth_execute "$challenge_id" "$decision" > "$tmp/response" || rc=$?
+	rc=0; umask 077; acmesh_auth_execute "$challenge_id" "$decision" > "$op_execute_tmp/response" || rc=$?; chmod 600 "$op_execute_tmp/response" 2>/dev/null || true
+	if [ "$rc" = 0 ]; then case "${ACMESH_AUTH_EXECUTED_OPERATION:-}" in import-apply|secret-export|profile-delete) acmesh_operation_direct_dispatch "$ACMESH_AUTH_EXECUTED_OPERATION" "$ACMESH_AUTH_EXECUTED_SUBJECT_ID" > "$op_execute_tmp/response" || rc=$?;; esac; fi
 	if [ "$rc" = 0 ] && [ "${ACMESH_AUTH_EXECUTED_OPERATION:-}" = ssh-key-convert ]; then
-		rm -rf "$tmp"; acmesh_operation_start deploy-run deployProfile "$ACMESH_AUTH_EXECUTED_SUBJECT_ID" "$request_file"; return $?
-	elif [ "$rc" = 0 ]; then printf '{"ok":true,"authorized":true,"taskId":"%s"}\n' "$(acmesh_json_escape "$ACMESH_OPERATION_TASK_ID")"; else cat "$tmp/response"; fi
-	rm -rf "$tmp"
+		rm -rf "$op_execute_tmp"; acmesh_operation_start deploy-run deployProfile "$ACMESH_AUTH_EXECUTED_SUBJECT_ID" "$request_file"; return $?
+	elif [ "$rc" = 0 ] && [ -f "$op_execute_tmp/result" ]; then cat "$op_execute_tmp/result"; else cat "$op_execute_tmp/response"; fi
+	rm -rf "$op_execute_tmp"
 	return "$rc"
 }

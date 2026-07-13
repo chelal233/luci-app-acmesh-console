@@ -60,6 +60,8 @@ export ACMESH_CONSOLE_CONFIG="$TMP/config/config.json"
 export ACMESH_CONSOLE_UCI_CONFIG="$TMP/missing-uci"
 export ACMESH_TASK_STATE_DIR="$TMP/tasks/state"
 export ACMESH_TASK_LOG_DIR="$TMP/tasks/log"
+export ACMESH_PENDING_IMPORT_DIR="$TMP/pending-imports"
+export ACMESH_CONFIG_LOCK_FILE="$TMP/config/config.lock"
 
 task_artifact_count() {
 	count=0
@@ -152,14 +154,12 @@ dns_log="$(sh "$CTL" task-log --task-id "$dns_id")"
 case "$dns_log" in *'Domain: request-dns.example'*'Provider: dns_cf'*'CF_Token=***'*) ;; *) echo "request-file dns-test ignored fields"; echo "$dns_log"; exit 1 ;; esac
 case "$dns_log" in *'dns-secret-token'*) echo "request-file dns-test leaked credential"; exit 1 ;; esac
 
-mkdir -p "$TMP/acme-home/imported.example_ecc"
-printf "Le_Domain='imported.example'\n" > "$TMP/acme-home/imported.example_ecc/imported.example.conf"
 import_request="$TMP/import-request.json"
-printf '%s\n' '{"source":"history"}' > "$import_request"
+import_envelope='{"format":"acmesh-console-config","version":1,"config":{"schemaVersion":2,"global":{"defaultAccountEmail":"imported@example.org","coreTag":"v3.1.4","acmeHome":"/etc/acme"},"accountProfiles":[],"issueProfiles":[],"deployProfiles":[]}}'
+import_escaped="$(printf '%s' "$import_envelope" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+printf '{"payload":"%s"}\n' "$import_escaped" > "$import_request"
 preview_out="$(sh "$CTL" import-preview --request-file "$import_request")"
-case "$preview_out" in *'"ok":true'*'"mainDomain":"imported.example"'*) ;; *) echo "import-preview request command is not aligned"; echo "$preview_out"; exit 1 ;; esac
-apply_out="$(sh "$CTL" import-apply --request-file "$import_request")"
-case "$apply_out" in *'"ok":true'*'"taskId"'*) ;; *) echo "import-apply request command is not aligned"; echo "$apply_out"; exit 1 ;; esac
+case "$preview_out" in *'"ok":true'*'"previewId"'*'"configDigest"'*) ;; *) echo "import-preview request command is not aligned"; echo "$preview_out"; exit 1 ;; esac
 
 set +e
 not_implemented="$(sh "$CTL" authorization-execute --request-file "$issue_request")"

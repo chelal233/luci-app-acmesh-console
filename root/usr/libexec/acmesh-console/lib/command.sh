@@ -368,6 +368,25 @@ acmesh_execute_renew() {
 	"$@"
 }
 
+acmesh_build_certificate_destructive_command() {
+	home="$1" action="$2" domain="$3" key_type="${4:-}"
+	case "$action" in revoke|remove) ;; *) return 2;; esac
+	command="$(acmesh_shell_quote "$(acmesh_find_script "$home" 2>/dev/null || printf '%s/acme.sh' "$home")") --home $(acmesh_shell_quote "$home") --$action -d $(acmesh_shell_quote "$domain")"
+	[ -z "$key_type" ] || ! acmesh_key_type_is_ecc "$key_type" || command="$command --ecc"
+	printf '%s\n' "$command"
+}
+
+acmesh_execute_certificate_destructive() {
+	home="$1" action="$2" domain="$3" key_type="${4:-}"
+	case "$action" in revoke|remove) ;; *) return 2;; esac
+	script="$(acmesh_find_script "$home")" || { printf 'acme.sh not found in %s or PATH\n' "$home" >&2; return 127; }
+	printf 'REAL MODE: executing acme.sh certificate %s\n' "$action"
+	acmesh_build_certificate_destructive_command "$home" "$action" "$domain" "$key_type"
+	set -- "$script" --home "$home" "--$action" -d "$domain"
+	[ -z "$key_type" ] || ! acmesh_key_type_is_ecc "$key_type" || set -- "$@" --ecc
+	"$@"
+}
+
 acmesh_import_history() {
 	home="$1"
 	status="$(acmesh_scan_home "$home")"

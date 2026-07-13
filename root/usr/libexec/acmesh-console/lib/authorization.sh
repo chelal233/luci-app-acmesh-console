@@ -176,7 +176,7 @@ acmesh_auth_snapshot() {
 			import|import-apply) acmesh_canon_string configDigest "${ACMESH_AUTH_CONFIG_DIGEST-}" && acmesh_canon_string overwriteMode "${ACMESH_AUTH_OVERWRITE_MODE-}" || exit $? ;;
 			export|secret-export) acmesh_canon_string configDigest "${ACMESH_AUTH_CONFIG_DIGEST-}" && acmesh_canon_string exportScope "${ACMESH_AUTH_EXPORT_SCOPE-}" || exit $? ;;
 			ssh-key-convert) acmesh_canon_string publicIdentityDigest "${ACMESH_AUTH_PUBLIC_IDENTITY_DIGEST-}" && acmesh_canon_string sourceFormat "${ACMESH_AUTH_SOURCE_FORMAT-}" && acmesh_canon_string targetClient "${ACMESH_AUTH_TARGET_CLIENT-}" && acmesh_canon_string targetFormat "${ACMESH_AUTH_TARGET_FORMAT-}" || exit $? ;;
-			certificate-revoke|certificate-remove|profile-delete|authorization-revoke) acmesh_canon_string objectIdentity "${ACMESH_AUTH_OBJECT_IDENTITY-}" && acmesh_canon_string variant "${ACMESH_AUTH_VARIANT-}" || exit $? ;;
+			certificate-revoke|certificate-remove|profile-delete|authorization-revoke) acmesh_canon_string objectIdentity "${ACMESH_AUTH_OBJECT_IDENTITY-}" && acmesh_canon_string variant "${ACMESH_AUTH_VARIANT-}" && acmesh_auth_emit_optional objectDigest "${ACMESH_AUTH_OBJECT_DIGEST-}" && acmesh_auth_emit_optional configDigest "${ACMESH_AUTH_CONFIG_DIGEST-}" || exit $? ;;
 			*) return 2 ;;
 		esac
 	} > "$tmp"
@@ -387,7 +387,7 @@ acmesh_auth_prepare_locked() {
 			acmesh_auth_rewrite_locked reuse '' '' '' '' "$fingerprint" "$now" || return 1
 			ACMESH_OPERATION_FINGERPRINT="$fingerprint"; export ACMESH_OPERATION_FINGERPRINT
 			acmesh_auth_admit "$operation" "$subject_type" "$subject_id" remembered || return 1
-			printf '{"ok":true,"authorized":true,"remembered":true}\n'; return 0
+			[ "${ACMESH_OPERATION_DIRECT_RESPONSE:-0}" = 1 ] || printf '{"ok":true,"authorized":true,"remembered":true,"taskId":"%s"}\n' "$(acmesh_json_escape "${ACMESH_OPERATION_TASK_ID:-}")"; return 0
 		fi
 		i=$((i + 1))
 	done
@@ -450,6 +450,7 @@ acmesh_auth_execute_locked() {
 	expires="$(acmesh_auth_json_get "$consuming" '@.expiresAt')"; case "$expires" in ''|*[!0-9]*) cleanup_consuming; return 4 ;; esac
 	[ "$now" -lt "$expires" ] || { rm -f "$consuming"; trap - HUP INT TERM EXIT; printf '{"ok":false,"error":"authorizationExpired"}\n'; return 4; }
 	operation="$(acmesh_auth_json_get "$consuming" '@.operation')"; subject_type="$(acmesh_auth_json_get "$consuming" '@.subjectType')"; subject_id="$(acmesh_auth_json_get "$consuming" '@.subjectId')"
+	case "$operation:$decision" in import-apply:remember|certificate-revoke:remember|certificate-remove:remember|profile-delete:remember) rm -f "$consuming"; trap - HUP INT TERM EXIT; printf '{"ok":false,"error":"rememberNotAllowed"}\n'; return 2;; esac
 	ACMESH_AUTH_EXECUTED_OPERATION="$operation" ACMESH_AUTH_EXECUTED_SUBJECT_TYPE="$subject_type" ACMESH_AUTH_EXECUTED_SUBJECT_ID="$subject_id"
 	export ACMESH_AUTH_EXECUTED_OPERATION ACMESH_AUTH_EXECUTED_SUBJECT_TYPE ACMESH_AUTH_EXECUTED_SUBJECT_ID
 	tmpdir="$ACMESH_AUTH_CHALLENGE_DIR/.recompute.$id"; acmesh_private_dir "$tmpdir" || return 1
@@ -469,7 +470,7 @@ acmesh_auth_execute_locked() {
 	ACMESH_OPERATION_FINGERPRINT="$current"; export ACMESH_OPERATION_FINGERPRINT
 	acmesh_auth_admit "$operation" "$subject_type" "$subject_id" "$decision" || { cleanup_consuming; return 1; }
 	cleanup_consuming
-	printf '{"ok":true,"authorized":true,"remembered":%s}\n' "$([ "$decision" = remember ] && printf true || printf false)"
+	[ "${ACMESH_OPERATION_DIRECT_RESPONSE:-0}" = 1 ] || printf '{"ok":true,"authorized":true,"remembered":%s,"taskId":"%s"}\n' "$([ "$decision" = remember ] && printf true || printf false)" "$(acmesh_json_escape "${ACMESH_OPERATION_TASK_ID:-}")"
 }
 
 acmesh_auth_execute() {
