@@ -16,6 +16,8 @@ The package targets current OpenWrt/ImmortalWrt releases with LuCI, `rpcd`, POSI
 
 Build the package in an OpenWrt SDK or buildroot and install the resulting package with the platform package manager. Required runtime dependencies are declared in `Makefile`; do not remove `jsonfilter`, `dropbearconvert`, or the SSH client utilities from a custom build.
 
+For the verified Windows + WSL2 workflow covering SDK APK builds, x86-64/ext4 ImageBuilder images, the existing third-party plugin set, full source builds, router tests, and release gates, see [`docs/IMMORTALWRT_BUILD_WORKFLOW.md`](docs/IMMORTALWRT_BUILD_WORKFLOW.md).
+
 After installation, open **Services → acme.sh Console** in LuCI. The package keeps private state under `/etc/acmesh-console` with directory mode `0700` and private files mode `0600`.
 
 ## Accounts, issue profiles, deploy profiles
