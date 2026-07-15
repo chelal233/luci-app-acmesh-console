@@ -21,6 +21,7 @@ export ACMESHCTL="$bin/acmeshctl"
 
 grep -F '"/usr/libexec/acmesh-console/rpc-read": [ "exec" ]' "$ACL" >/dev/null
 grep -F '"/usr/libexec/acmesh-console/rpc-write": [ "exec" ]' "$ACL" >/dev/null
+grep -F '"/var/run/acmesh-console/requests/*": [ "write", "remove" ]' "$ACL" >/dev/null
 ! grep -F '"/usr/libexec/acmesh-console/acmeshctl": [ "exec" ]' "$ACL" >/dev/null
 ! grep -F '"/etc/acme": [ "list", "read" ]' "$ACL" >/dev/null
 ! grep -R -- '--credential\|--key-pem\|--fullchain-pem\|--json' "$VIEWS" >/dev/null
@@ -41,12 +42,21 @@ printf '%s' "$write_error" | grep -F 'unsupported method' >/dev/null
 [ ! -e "$calls" ] || { echo "unsupported RPC methods invoked acmeshctl"; exit 1; }
 
 set +e
+config_read_error="$(sh "$ROOT/root/usr/libexec/acmesh-console/rpc-read" config_get 2>/dev/null)"
+config_read_rc=$?
+set -e
+[ "$config_read_rc" = 2 ] || { echo "rpc-read config_get should be unavailable"; exit 1; }
+printf '%s' "$config_read_error" | grep -F 'unsupported method' >/dev/null
+grep -F 'config_get) command=config-get' "$ROOT/root/usr/libexec/acmesh-console/rpc-write" >/dev/null
+
+set +e
 authorization_error="$(ACMESHCTL="$ROOT/root/usr/libexec/acmesh-console/acmeshctl" sh "$ROOT/root/usr/libexec/acmesh-console/rpc-read" authorization_list 2>/dev/null)"
 authorization_rc=$?
 set -e
-[ "$authorization_rc" = 2 ] || { echo "authorization_list should exit 2"; echo "$authorization_error"; exit 1; }
-printf '%s' "$authorization_error" | grep -F '"ok":false' >/dev/null || { echo "authorization_list did not return structured JSON"; exit 1; }
-printf '%s' "$authorization_error" | grep -F 'not implemented' >/dev/null || { echo "authorization_list returned generic unsupported command"; exit 1; }
+[ "$authorization_rc" = 0 ] || { echo "authorization_list should succeed"; echo "$authorization_error"; exit 1; }
+printf '%s' "$authorization_error" | grep -F '"ok":true' >/dev/null || { echo "authorization_list did not return structured JSON"; exit 1; }
+printf '%s' "$authorization_error" | grep -F '"records":[' >/dev/null || { echo "authorization_list omitted records"; exit 1; }
+grep -F 'ACMESH_AUTH_RECOMPUTE_CALLBACK=acmesh_operation_recompute' "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" >/dev/null || { echo "authorization_list omitted recompute callback"; exit 1; }
 
 set +e
 consume_error="$(ACMESH_REQUEST_DIR="$ROOT/tests/.tmp/missing-request-inbox" sh "$ROOT/root/usr/libexec/acmesh-console/rpc-write" renew --request-id not-an-id 2>/dev/null)"

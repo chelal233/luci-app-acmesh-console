@@ -63,7 +63,7 @@ acmesh_sanitize_credentials() {
 acmesh_ca_server_value() {
 	case "${1:-letsencrypt}" in
 		''|letsencrypt|production)
-			return 0
+			printf '%s\n' letsencrypt
 			;;
 		letsencrypt_staging|staging)
 			printf '%s\n' letsencrypt_test
@@ -368,6 +368,25 @@ acmesh_execute_renew() {
 	"$@"
 }
 
+acmesh_build_certificate_destructive_command() {
+	home="$1" action="$2" domain="$3" key_type="${4:-}"
+	case "$action" in revoke|remove) ;; *) return 2;; esac
+	command="$(acmesh_shell_quote "$(acmesh_find_script "$home" 2>/dev/null || printf '%s/acme.sh' "$home")") --home $(acmesh_shell_quote "$home") --$action -d $(acmesh_shell_quote "$domain")"
+	[ -z "$key_type" ] || ! acmesh_key_type_is_ecc "$key_type" || command="$command --ecc"
+	printf '%s\n' "$command"
+}
+
+acmesh_execute_certificate_destructive() {
+	home="$1" action="$2" domain="$3" key_type="${4:-}"
+	case "$action" in revoke|remove) ;; *) return 2;; esac
+	script="$(acmesh_find_script "$home")" || { printf 'acme.sh not found in %s or PATH\n' "$home" >&2; return 127; }
+	printf 'REAL MODE: executing acme.sh certificate %s\n' "$action"
+	acmesh_build_certificate_destructive_command "$home" "$action" "$domain" "$key_type"
+	set -- "$script" --home "$home" "--$action" -d "$domain"
+	[ -z "$key_type" ] || ! acmesh_key_type_is_ecc "$key_type" || set -- "$@" --ecc
+	"$@"
+}
+
 acmesh_import_history() {
 	home="$1"
 	status="$(acmesh_scan_home "$home")"
@@ -477,30 +496,41 @@ acmesh_execute_core_install() {
 	tag="${3:-${ACMESH_CORE_TAG:-v3.1.4}}"
 	tag="$(acmesh_core_tag_value "$tag")" || return 1
 	mkdir -p "$home"
+	backup_dir="${ACMESH_CORE_BACKUP_DIR:-$home/.acmesh-console-backup.$$}"
+	old_script="$home/acme.sh" old_sha= absent=0
+	if [ -f "$old_script" ] && [ ! -L "$old_script" ]; then
+		(umask 077; mkdir -p "$backup_dir" && chmod 700 "$backup_dir" && cp -p "$old_script" "$backup_dir/acme.sh") || return 1
+		old_sha="$(sha256sum "$old_script" | awk '{print $1}')"
+		(umask 077; "$old_script" --version > "$backup_dir/version.txt" 2>&1) || { rm -rf "$backup_dir"; return 1; }
+	else absent=1; fi
+	rollback_core() {
+		if [ -f "$backup_dir/acme.sh" ]; then cp -p "$backup_dir/acme.sh" "$old_script.rollback.$$" && mv -f "$old_script.rollback.$$" "$old_script" && printf 'Rollback restored previous acme.sh (%s).\n' "$old_sha" >&2
+		elif [ "$absent" = 1 ]; then rm -f "$old_script"; printf 'Rollback removed incomplete install.\n' >&2; fi
+	}
 	workdir="${ACMESH_CORE_TMPDIR:-/tmp/acmesh-console-core-$$}"
 	archive="$workdir/acme.sh-$tag.tar.gz"
 	printf 'REAL MODE: installing acme.sh from official tag %s\n' "$tag"
 	acmesh_core_install_command "$home" "$email" "$tag"
-	acmesh_core_require_openssl || return $?
+	acmesh_core_require_openssl || { rc=$?; rollback_core; rm -rf "$backup_dir"; return "$rc"; }
 	rm -rf "$workdir"
 	mkdir -p "$workdir"
 	if command -v curl >/dev/null 2>&1; then
-		curl -fsSL "$(acmesh_core_tag_url "$tag")" -o "$archive"
+		curl -fsSL "$(acmesh_core_tag_url "$tag")" -o "$archive" || { rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; }
 	elif command -v wget >/dev/null 2>&1; then
-		wget -O "$archive" "$(acmesh_core_tag_url "$tag")"
+		wget -O "$archive" "$(acmesh_core_tag_url "$tag")" || { rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; }
 	else
 		echo "curl or wget is required to install acme.sh" >&2
 		rm -rf "$workdir"
-		return 127
+		rollback_core; rm -rf "$backup_dir"; return 127
 	fi
-	tar -xzf "$archive" -C "$workdir"
+	if ! tar -xzf "$archive" -C "$workdir"; then rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; fi
 	src=""
 	for dir in "$workdir"/acme.sh-*; do
 		[ -d "$dir" ] || continue
 		src="$dir"
 		break
 	done
-	[ -n "$src" ] || { echo "unable to find extracted acme.sh tag archive" >&2; rm -rf "$workdir"; return 1; }
+	[ -n "$src" ] && [ -x "$src/acme.sh" ] && "$src/acme.sh" --version >/dev/null 2>&1 || { echo "unusable official tag archive" >&2; rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; }
 	(
 		cd "$src"
 		if [ -n "$email" ]; then
@@ -510,7 +540,10 @@ acmesh_execute_core_install() {
 		fi
 	)
 	rc=$?
+	if [ "$rc" = 0 ]; then [ -x "$old_script" ] && "$old_script" --version >/dev/null 2>&1 || rc=1; fi
+	[ "$rc" = 0 ] || rollback_core
 	rm -rf "$workdir"
+	rm -rf "$backup_dir"
 	return "$rc"
 }
 

@@ -1,7 +1,8 @@
 'use strict';
 'require view';
 'require ui';
-'require acmesh.api as acmeshApi';
+'require acmesh.api_v2 as acmeshApi';
+'require acmesh.authorization_v2 as authorization';
 
 function panel(title, value, warning) {
 	return E('div', { 'class': 'acmesh-panel ' + (warning ? 'is-warning' : '') }, [
@@ -62,7 +63,11 @@ function renderTable(headers, rows, emptyText) {
 
 return view.extend({
 	load: function() {
-		return Promise.all([ acmeshApi.read('status'), acmeshApi.read('core_status'), acmeshApi.read('config_get') ]);
+		return Promise.all([
+			acmeshApi.read('status'),
+			acmeshApi.read('core_status'),
+			L.resolveDefault(acmeshApi.write('config_get', {}), {})
+		]);
 	},
 
 	render: function(results) {
@@ -71,6 +76,7 @@ return view.extend({
 		const config = results[2] || {};
 		config.global = config.global || {};
 		const global = config.global;
+		delete global.testMode;
 		const deps = core.dependencies || {};
 		let certs = Array.isArray(data.certificates) ? data.certificates : [];
 		const deployProfiles = Array.isArray(config.deployProfiles) ? config.deployProfiles : [];
@@ -202,7 +208,7 @@ return view.extend({
 
 		const prepareDeploy = function(profile, cert) {
 			return {
-				method: global.testMode === false ? 'deploy_run' : 'deploy_test',
+				method: 'deploy_run',
 				payload: { profileId: profile.id },
 				profile: profile
 			};
@@ -215,9 +221,8 @@ return view.extend({
 			[ 'v3.0.9', 'v3.0.9' ]
 		];
 
-		const saveCoreDefaults = function(email, testMode, acmeHome, tagList) {
+		const saveCoreDefaults = function(email, acmeHome, tagList) {
 			global.defaultAccountEmail = email.value.trim();
-			global.testMode = !!testMode.checked;
 			global.acmeHome = acmeHome.value.trim() || '/etc/acme';
 			global.coreTag = tagList.value || 'v3.1.4';
 			return saveConfig();
@@ -232,18 +237,21 @@ return view.extend({
 			};
 		};
 
-		const importHistory = function() {
-			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write('import_apply', { source: 'history' }).then(showTask).then(refreshCertificates);
-		};
-
 		const renewCertificate = function(cert) {
 			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write('renew', {
+			return authorization.run('renew', {
 				domain: cert.mainDomain || '',
 				keyType: cert.keyType || '',
-				testMode: global.testMode !== false
+				testMode: false
 			}).then(showTask);
+		};
+
+		const destructiveCertificateAction = function(method, cert) {
+			taskBox.textContent = _('Creating task') + '...';
+			return authorization.run(method, {
+				domain: cert.mainDomain || '',
+				keyType: cert.keyType || ''
+			}, { destructive: true }).then(showTask).then(refreshCertificates);
 		};
 
 		const deployCertificateWithProfile = function(cert, profileSelect) {
@@ -261,12 +269,12 @@ return view.extend({
 				return Promise.resolve();
 			}
 			taskBox.textContent = _('Creating task') + '...';
-			return acmeshApi.write(prepared.method, prepared.payload).then(showTask);
+			return authorization.run(prepared.method, prepared.payload).then(showTask);
 		};
 
 		const renderSummary = function() {
 			const email = input(global.defaultAccountEmail || '', 'name@example.com');
-			const testMode = E('input', { 'type': 'checkbox', 'checked': global.testMode !== false ? 'checked' : null });
+			const testMode = E('input', { 'type': 'checkbox' });
 			const acmeHome = input(global.acmeHome || core.home || data.home || '/etc/acme', '/etc/acme');
 			const tagList = select(global.coreTag || 'v3.1.4', coreTagChoices);
 
@@ -279,25 +287,25 @@ return view.extend({
 					editablePanel(_('acme.sh home'), acmeHome),
 					editablePanel(_('Default account email'), email),
 					versionPanel(_('Core tag candidates'), tagList, core.version),
-					modePanel(_('Mode'), E('span', { 'class': 'acmesh-inline' }, [ testMode, E('span', {}, _('Global Test Mode')) ])),
+					modePanel(_('Mode'), E('span', { 'class': 'acmesh-inline' }, [ testMode, E('span', {}, _('Test this core action')) ])),
 					E('div', { 'class': 'acmesh-primary-actions acmesh-summary-actions' }, [
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								taskBox.textContent = res.ok ? 'OK' : (res.error || _('Unable to save config'));
 							});
 						}) }, _('Save defaults')),
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
-								return acmeshApi.write('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
+								return authorization.run('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
 							});
 						}) }, _('Install selected tag')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, testMode, acmeHome, tagList).then(function(res) {
+							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
 								if (!res.ok)
 									return res;
-								return acmeshApi.write('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
+								return authorization.run('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
 							});
 						}) }, _('Upgrade selected tag'))
 					])
@@ -325,7 +333,9 @@ return view.extend({
 						profileSelect,
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 							return deployCertificateWithProfile(cert, profileSelect);
-						}) }, _('Deploy'))
+						}) }, _('Deploy')),
+						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_revoke', cert); }) }, _('Revoke certificate')),
+						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_remove', cert); }) }, _('Remove certificate'))
 					])
 				];
 			}, this);
@@ -334,7 +344,6 @@ return view.extend({
 				E('h2', {}, _('Certificates')),
 				renderSummary(),
 				E('div', { 'class': 'acmesh-actions' }, [
-					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, importHistory) }, _('Import history')),
 					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, refreshCertificates) }, _('Refresh'))
 				]),
 				renderTable([ _('Domain'), _('Key type'), _('Primary'), _('SAN'), _('Config'), '' ], rows, _('No certificates found'))
@@ -360,7 +369,9 @@ return view.extend({
 					profileSelect,
 					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 						return deployCertificateWithProfile(cert, profileSelect);
-					}) }, _('Deploy'))
+					}) }, _('Deploy')),
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_revoke', cert); }) }, _('Revoke certificate')),
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() { return destructiveCertificateAction('certificate_remove', cert); }) }, _('Remove certificate'))
 				]),
 				renderTable([ _('Field'), _('Value') ], [
 					[ _('Domain'), cert.mainDomain || '-' ],

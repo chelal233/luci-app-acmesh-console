@@ -161,8 +161,22 @@ acmesh_deploy_canonical_target() {
 
 acmesh_deploy_destination_preflight() {
 	preflight_type="$1"
-	ACMESH_DEPLOY_NORMALIZED_KEY_TARGET="$(acmesh_deploy_canonical_target "$2")" || return 73
-	ACMESH_DEPLOY_NORMALIZED_CERT_TARGET="$(acmesh_deploy_canonical_target "$3")" || return 73
+	case "$preflight_type" in
+		local)
+			ACMESH_DEPLOY_NORMALIZED_KEY_TARGET="$(acmesh_deploy_canonical_target "$2")" || return 73
+			ACMESH_DEPLOY_NORMALIZED_CERT_TARGET="$(acmesh_deploy_canonical_target "$3")" || return 73
+			;;
+		ssh)
+			# The router's filesystem cannot resolve symlinks for a remote target.
+			# Normalize only lexical aliases here; the remote transaction resolves
+			# symlinks and checks target identity on the destination host.
+			ACMESH_DEPLOY_NORMALIZED_KEY_TARGET="$(acmesh_deploy_lexical_absolute_target "$2")" || return 73
+			ACMESH_DEPLOY_NORMALIZED_CERT_TARGET="$(acmesh_deploy_lexical_absolute_target "$3")" || return 73
+			;;
+		*) return 2 ;;
+	esac
+	[ "$ACMESH_DEPLOY_NORMALIZED_KEY_TARGET" != / ] || return 73
+	[ "$ACMESH_DEPLOY_NORMALIZED_CERT_TARGET" != / ] || return 73
 	if [ "$ACMESH_DEPLOY_NORMALIZED_KEY_TARGET" = "$ACMESH_DEPLOY_NORMALIZED_CERT_TARGET" ]; then
 		echo "key and fullchain targets must be different" >&2
 		return 74
@@ -1015,7 +1029,7 @@ acmesh_execute_profile_deploy_guarded() (
 	[ -n "${ACMESH_CURRENT_TASK_ID:-}" ] || return 2
 	workspace="$(acmesh_task_workspace "$ACMESH_CURRENT_TASK_ID")" || return 1
 	trap 'acmesh_deploy_cleanup_temp_key' EXIT
-	acmesh_deploy_run_worker "$workspace" "${ACMESH_DEPLOY_WORKER_SCRIPT:-$ACMESH_LIB_DIR/deploy-worker.sh}" "$@"
+	acmesh_deploy_run_worker "$workspace" "${ACMESH_DEPLOY_WORKER_SCRIPT:-${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}/deploy-worker.sh}" "$@"
 )
 
 acmesh_execute_profile_deploy() {

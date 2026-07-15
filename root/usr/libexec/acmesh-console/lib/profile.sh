@@ -27,9 +27,10 @@ acmesh_profile_install_cleanup_traps() {
 
 acmesh_profile_validate_global() {
 	json_select global || return 1; json_get_keys keys
+	# testMode is accepted only as a no-op migration field for existing schema-2 files.
 	acmesh_profile_allowed_keys 'defaultAccountEmail testMode coreTag acmeHome' $keys || return 1
 	acmesh_profile_string defaultAccountEmail || return 1; acmesh_profile_string coreTag 1 || return 1; acmesh_profile_string acmeHome 1 || return 1
-	json_get_var home acmeHome; acmesh_profile_abs_path "$home" || return 1; acmesh_profile_type testMode boolean || return 1; json_select ..
+	json_get_var home acmeHome; acmesh_profile_abs_path "$home" || return 1; json_get_type legacy_test_type testMode 2>/dev/null || legacy_test_type=; [ -z "$legacy_test_type" ] || [ "$legacy_test_type" = boolean ] || return 1; json_select ..
 }
 
 acmesh_profile_validate_accounts() {
@@ -126,19 +127,20 @@ acmesh_profile_extract() (
 acmesh_profile_resolve_issue() (
 	set +u
 	id="$1" output="$2"; acmesh_profile_validate_id "$id" || return 2; acmesh_config_validate_file "$ACMESH_CONSOLE_CONFIG" || return 1; acmesh_profile_jshn || return 1; json_load_file "$ACMESH_CONSOLE_CONFIG" || return 1
-	json_select global; json_get_var default_email defaultAccountEmail; json_get_var global_test testMode; json_select ..
+	json_select global; json_get_var default_email defaultAccountEmail; json_select ..
 	json_select issueProfiles; json_get_keys indexes; found=; for index in $indexes; do json_select "$index"; json_get_var candidate id; [ "$candidate" = "$id" ] && found="$index"; json_select ..; done; [ -n "$found" ] || return 1
-	json_select "$found"; json_get_var account_id accountProfileId; json_get_var domain domain; json_get_var key_type keyType; json_get_var validation validationMethod; json_get_var dns dnsApi || dns=; json_get_var alias challengeAlias || alias=; json_get_var sleep_value dnsSleep || sleep_value=; json_get_var webroot webroot || webroot=; json_get_var listen_port listenPort || listen_port=; json_get_var deploy_id deployProfileId || deploy_id=; json_get_var policy testModeOverride; json_select ..; json_select ..
+	json_select "$found"; json_get_var account_id accountProfileId; json_get_var domain domain; json_get_var key_type keyType; json_get_var validation validationMethod; json_get_var dns dnsApi || dns=; json_get_var credential_mode credentialMode || credential_mode=; json_get_var alias challengeAlias || alias=; json_get_var sleep_value dnsSleep || sleep_value=; json_get_var webroot webroot || webroot=; json_get_var listen_port listenPort || listen_port=; json_get_var deploy_id deployProfileId || deploy_id=; json_get_var policy testModeOverride; json_select ..; json_select ..
 	account_email="$default_email"; ca=letsencrypt; json_select accountProfiles; json_get_keys indexes; for index in $indexes; do json_select "$index"; json_get_var candidate id; if [ "$candidate" = "$account_id" ]; then json_get_var overlay accountEmail || overlay=; json_get_var ca ca; [ -z "$overlay" ] || account_email="$overlay"; fi; json_select ..; done
 	case "$policy" in
 		force-test-mode) test_mode=true ;;
 		force-real-mode) test_mode=false ;;
-		*) case "$global_test" in 1|true) test_mode=true;; *) test_mode=false;; esac ;;
+		inherit-global-test-mode) test_mode=false ;;
+		*) return 1 ;;
 	esac
 	[ -n "$sleep_value" ] || sleep_value=0
 	json_index=$((found - 1)); cred_json="$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e "@.issueProfiles[$json_index].credentials" 2>/dev/null || true)"; [ -n "$cred_json" ] || cred_json='{}'
 	domains_json="$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e "@.issueProfiles[$json_index].domains" 2>/dev/null || true)"; [ -n "$domains_json" ] || domains_json="[\"$(acmesh_json_escape "$domain")\"]"
-	printf '{"id":"%s","accountId":"%s","accountEmail":"%s","ca":"%s","domains":%s,"keyType":"%s","validationMethod":"%s","dnsApi":"%s","challengeAlias":"%s","dnsSleep":%s,"webroot":"%s","listenPort":"%s","deployProfileId":"%s","testMode":%s,"credentials":%s}\n' "$(acmesh_json_escape "$id")" "$(acmesh_json_escape "$account_id")" "$(acmesh_json_escape "$account_email")" "$(acmesh_json_escape "$ca")" "$domains_json" "$(acmesh_json_escape "$key_type")" "$(acmesh_json_escape "$validation")" "$(acmesh_json_escape "$dns")" "$(acmesh_json_escape "$alias")" "$sleep_value" "$(acmesh_json_escape "$webroot")" "$(acmesh_json_escape "$listen_port")" "$(acmesh_json_escape "$deploy_id")" "$test_mode" "$cred_json" | acmesh_atomic_write "$output" 600
+	printf '{"id":"%s","accountId":"%s","accountEmail":"%s","ca":"%s","domains":%s,"keyType":"%s","validationMethod":"%s","dnsApi":"%s","credentialMode":"%s","challengeAlias":"%s","dnsSleep":%s,"webroot":"%s","listenPort":"%s","deployProfileId":"%s","testMode":%s,"credentials":%s}\n' "$(acmesh_json_escape "$id")" "$(acmesh_json_escape "$account_id")" "$(acmesh_json_escape "$account_email")" "$(acmesh_json_escape "$ca")" "$domains_json" "$(acmesh_json_escape "$key_type")" "$(acmesh_json_escape "$validation")" "$(acmesh_json_escape "$dns")" "$(acmesh_json_escape "$credential_mode")" "$(acmesh_json_escape "$alias")" "$sleep_value" "$(acmesh_json_escape "$webroot")" "$(acmesh_json_escape "$listen_port")" "$(acmesh_json_escape "$deploy_id")" "$test_mode" "$cred_json" | acmesh_atomic_write "$output" 600
 )
 
 acmesh_profile_resolve_deploy() (
@@ -189,6 +191,7 @@ acmesh_profile_load_issue_file() {
 	json_get_var ACMESH_PROFILE_KEY_TYPE keyType
 	json_get_var ACMESH_PROFILE_VALIDATION validationMethod
 	json_get_var ACMESH_PROFILE_DNS_API dnsApi || ACMESH_PROFILE_DNS_API=
+	json_get_var ACMESH_PROFILE_CREDENTIAL_MODE credentialMode || ACMESH_PROFILE_CREDENTIAL_MODE=
 	json_get_var ACMESH_PROFILE_TEST_MODE testMode
 	case "$ACMESH_PROFILE_TEST_MODE" in 1|true) ACMESH_PROFILE_TEST_MODE=true;; *) ACMESH_PROFILE_TEST_MODE=false;; esac
 	json_get_var ACMESH_PROFILE_WEBROOT webroot || ACMESH_PROFILE_WEBROOT=
@@ -207,3 +210,18 @@ acmesh_profile_load_issue_file() {
 	done
 	json_select ..
 }
+
+acmesh_profile_find_linked_deploy() (
+	domain="$1" key_type="${2:-}"
+	acmesh_config_validate_file "$ACMESH_CONSOLE_CONFIG" || return 1
+	acmesh_profile_jshn || return 1; json_load_file "$ACMESH_CONSOLE_CONFIG" || return 1
+	json_select issueProfiles; json_get_keys indexes; found=
+	for index in $indexes; do
+		json_select "$index"; json_get_var candidate domain; json_get_var variant keyType; json_get_var deploy deployProfileId || deploy=
+		if [ "$candidate" = "$domain" ] && { [ -z "$key_type" ] || [ "$variant" = "$key_type" ] || { acmesh_key_type_is_ecc "$variant" && acmesh_key_type_is_ecc "$key_type"; }; }; then
+			[ -z "$found" ] || return 1; found="$deploy"
+		fi
+		json_select ..
+	done
+	[ -n "$found" ] || return 1; printf '%s\n' "$found"
+)

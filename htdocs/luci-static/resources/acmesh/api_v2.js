@@ -1,4 +1,5 @@
 'use strict';
+'require baseclass';
 'require fs';
 
 function requestId() {
@@ -25,4 +26,7 @@ function write(method, payload) {
 	});
 }
 
-return { read: read, write: write };
+return baseclass.extend({
+	read: read,
+	write: write
+});

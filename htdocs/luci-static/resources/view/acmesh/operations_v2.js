@@ -1,12 +1,12 @@
 'use strict';
 'require view';
 'require ui';
-'require acmesh.api as acmeshApi';
+'require acmesh.api_v2 as acmeshApi';
+'require acmesh.authorization_v2 as authorization';
 
 const DEFAULT_CONFIG = {
 	global: {
 		defaultAccountEmail: '',
-		testMode: true,
 		coreTag: 'v3.1.4',
 		acmeHome: '/etc/acme'
 	},
@@ -331,8 +331,13 @@ const DNS_PROVIDER_OPTIONS = Object.keys(DNS_PROVIDER_TEMPLATES).map(function(dn
 function mergeConfig(config) {
 	config = config || {};
 	config.global = Object.assign({}, DEFAULT_CONFIG.global, config.global || {});
+	delete config.global.testMode;
 	config.accountProfiles = Array.isArray(config.accountProfiles) ? config.accountProfiles : [];
 	config.issueProfiles = Array.isArray(config.issueProfiles) ? config.issueProfiles : [];
+	config.issueProfiles.forEach(function(profile) {
+		if (!profile.testModeOverride || profile.testModeOverride === 'inherit-global-test-mode')
+			profile.testModeOverride = 'force-real-mode';
+	});
 	config.deployProfiles = Array.isArray(config.deployProfiles) ? config.deployProfiles : [];
 	return config;
 }
@@ -355,8 +360,7 @@ function migrationSummary(config) {
 		_('Deploy profiles') + ': ' + config.deployProfiles.length,
 		_('Default account email') + ': ' + (config.global.defaultAccountEmail || '-'),
 		_('ACME home') + ': ' + (config.global.acmeHome || '-'),
-		_('Core tag') + ': ' + (config.global.coreTag || '-'),
-		_('Global test mode') + ': ' + (config.global.testMode === false ? _('disabled') : _('enabled'))
+		_('Core tag') + ': ' + (config.global.coreTag || '-')
 	].join('\n');
 }
 
@@ -572,13 +576,14 @@ function importedCredentialMode(dnsApi, rawVars) {
 
 return view.extend({
 	load: function() {
-		return Promise.all([ acmeshApi.read('config_get'), acmeshApi.read('core_status'), acmeshApi.read('status') ]);
+		return Promise.all([ acmeshApi.write('config_get', {}), acmeshApi.read('core_status'), acmeshApi.read('status'), acmeshApi.read('authorization_list') ]);
 	},
 
 	render: function(results) {
 		let config = mergeConfig(results[0]);
 		const core = results[1] || {};
 		let scannedCertificates = (results[2] && results[2].certificates) || [];
+		let authorizationRecords = (results[3] && results[3].records) || [];
 		const output = terminal('');
 		let activeTab = 'accounts';
 		let editState = null;
@@ -592,9 +597,19 @@ return view.extend({
 		};
 
 		const refresh = function() {
-			return acmeshApi.read('config_get').then(function(next) {
+			return acmeshApi.write('config_get', {}).then(function(next) {
 				config = mergeConfig(next);
 				renderBody();
+			});
+		};
+
+		const deleteProfile = function(profileType, profileId) {
+			return authorization.run('profile_delete', { profileType: profileType, profileId: profileId }, { destructive: true }).then(function(result) {
+				if (result && result.ok)
+					return refresh();
+				if (result && !result.cancelled)
+					ui.addNotification(null, E('p', {}, result.error || _('Unable to delete profile')), 'danger');
+				return result;
 			});
 		};
 
@@ -682,9 +697,9 @@ return view.extend({
 			});
 		};
 
-		const runTask = function(method, payload) {
+		const runTask = function(method, payload, authorizationOptions) {
 			output.textContent = _('Creating task') + '...';
-			return acmeshApi.write(method, payload).then(function(res) {
+			return authorization.run(method, payload, authorizationOptions).then(function(res) {
 				if (!res.taskId) {
 					output.textContent = res.error || _('Unable to create task');
 					return;
@@ -699,12 +714,7 @@ return view.extend({
 				ui.addNotification(null, E('p', {}, _('Domain is required')), 'danger');
 				return Promise.resolve();
 			}
-			return runTask('dns_test', {
-				domain: profile.domain,
-				dnsApi: profile.dnsApi || 'dns_cf',
-				credentials: credentialArgs(profile),
-				testMode: effectiveTestMode(profile)
-			});
+			return runTask('dns_test', { profileId: profile.id });
 		};
 
 		const accountEmail = function(account) {
@@ -716,7 +726,7 @@ return view.extend({
 				return true;
 			if (profile && profile.testModeOverride === 'force-real-mode')
 				return false;
-			return config.global.testMode !== false;
+			return false;
 		};
 
 		const testModePolicyLabel = function(profile) {
@@ -724,7 +734,7 @@ return view.extend({
 				return _('Always Test Mode');
 			if (profile && profile.testModeOverride === 'force-real-mode')
 				return _('Always Real Mode');
-			return _('Inherit Global Test Mode');
+			return _('Always Real Mode');
 		};
 
 		const deploySourceLabel = function(profile) {
@@ -778,7 +788,7 @@ return view.extend({
 				email: accountEmail(account),
 				testMode: testMode,
 				testModeLabel: testMode ? _('Test') : _('Real'),
-				testModeSource: (profile.testModeOverride && profile.testModeOverride !== 'inherit-global-test-mode') ? _('Override') : _('Inherit default'),
+				testModeSource: _('Explicit profile policy'),
 				deployLabel: resolveDeployProfile(deploy).label,
 				accountLabel: account.name || profile.accountProfileId || _('No account profile')
 			};
@@ -816,10 +826,6 @@ return view.extend({
 			return { profileId: profile.id, allowKeyConvert: !!options.allowKeyConvert };
 		};
 
-		const confirmSshKeyConversionRetry = function() {
-			return window.confirm(_('Convert SSH key and retry deployment?') + '\n\n' + _('The converted key will be used only for this deployment and deleted afterwards.'));
-		};
-
 		const runDeployProfile = function(profile, command, options) {
 			options = options || {};
 			const validationError = validateDeployProfile(profile);
@@ -828,12 +834,10 @@ return view.extend({
 				ui.addNotification(null, E('p', {}, validationError), 'danger');
 				return Promise.resolve();
 			}
-			return runTask(command === 'deploy-run' ? 'deploy_run' : 'deploy_test', deployPayload(profile, options)).then(function(status) {
+			return runTask(command === 'deploy-run' ? 'deploy_run' : 'deploy_test', deployPayload(profile, options), { host: profile.host, port: profile.port || 22 }).then(function(status) {
 				if (command !== 'deploy-run' || options.allowKeyConvert)
 					return status;
 				if (!status || status.status !== 'failed' || !status.logText || status.logText.indexOf('ACMESH_DEPLOY_CONVERTIBLE_SSH_KEY=1') < 0)
-					return status;
-				if (!confirmSshKeyConversionRetry())
 					return status;
 				return runDeployProfile(profile, command, { allowKeyConvert: true });
 			});
@@ -870,16 +874,20 @@ return view.extend({
 			};
 
 			const exportConfig = function() {
-				const envelope = buildMigrationEnvelope(config);
-				const blob = new Blob([ JSON.stringify(envelope, null, 2) + '\n' ], { type: 'application/json' });
-				const url = URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = url;
-				link.download = 'acmesh-console-config-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
-				document.body.appendChild(link);
-				link.click();
-				link.remove();
-				URL.revokeObjectURL(url);
+				return authorization.run('secret_export', { scope: 'config-with-secrets' }).then(function(envelope) {
+					if (!envelope || envelope.cancelled || !envelope.ok)
+						return envelope;
+					const blob = new Blob([ JSON.stringify(envelope, null, 2) + '\n' ], { type: 'application/json' });
+					const url = URL.createObjectURL(blob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'acmesh-console-config-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+					document.body.appendChild(link);
+					link.click();
+					link.remove();
+					URL.revokeObjectURL(url);
+					return envelope;
+				});
 			};
 
 			file.addEventListener('change', function() {
@@ -947,6 +955,40 @@ return view.extend({
 			]);
 		}.bind(this);
 
+		const refreshAuthorizations = function() {
+			return acmeshApi.read('authorization_list').then(function(result) {
+				authorizationRecords = (result && result.records) || [];
+				renderBody();
+			});
+		};
+
+		const renderAuthorizationRecords = function() {
+			const rows = authorizationRecords.map(function(record) {
+				return [
+					record.operation || '-',
+					(record.subjectType || '-') + ': ' + (record.subjectId || '-'),
+					record.fingerprint || '-',
+					record.grantedAt || '-',
+					record.lastUsedAt || '-',
+					String(record.useCount == null ? 0 : record.useCount),
+					authorization.badge(record.status),
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() {
+						return acmeshApi.write('authorization_revoke', { recordId: record.id }).then(refreshAuthorizations);
+					}) }, _('Revoke'))
+				];
+			}, this);
+			return E('div', { 'class': 'acmesh-section' }, [
+				E('h3', {}, _('Authorization records')),
+				E('div', { 'class': 'acmesh-actions' }, [
+					E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() {
+						return acmeshApi.write('authorization_revoke_all', {}).then(refreshAuthorizations);
+					}) }, _('Revoke all')),
+					E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, refreshAuthorizations) }, _('Refresh'))
+				]),
+				renderTable([ _('Operation'), _('Subject'), _('Scope'), _('Granted'), _('Last used'), _('Uses'), _('Status'), _('Actions') ], rows, _('No authorization records'))
+			]);
+		}.bind(this);
+
 		const renderAccountsList = function() {
 			const rows = config.accountProfiles.map(function(account) {
 				return [
@@ -959,8 +1001,7 @@ return view.extend({
 							return setEdit('account', account.id);
 						}) }, _('Edit')),
 						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() {
-							config.accountProfiles = config.accountProfiles.filter(function(item) { return item.id !== account.id; });
-							return saveConfig().then(refresh);
+							return deleteProfile('account', account.id);
 						}) }, _('Delete'))
 					])
 				];
@@ -1040,7 +1081,7 @@ return view.extend({
 				return Promise.resolve();
 			}
 			output.textContent = _('Creating task') + '...';
-			return acmeshApi.write('issue', { profileId: profile.id }).then(function(res) {
+			return authorization.run('issue', { profileId: profile.id }).then(function(res) {
 				if (!res.taskId) {
 					output.textContent = res.error || _('Unable to create task');
 					return null;
@@ -1121,7 +1162,7 @@ return view.extend({
 						deployProfileId: '',
 						keyType: keyType,
 						validationMethod: validationMethod,
-						testModeOverride: 'inherit-global-test-mode',
+						testModeOverride: 'force-real-mode',
 						dnsApi: dnsApi,
 						credentialMode: credentialMode,
 						credentials: importCredentialsFromRaw(dnsApi, credentialMode, rawVars)
@@ -1158,8 +1199,7 @@ return view.extend({
 							return setEdit('issue', profile.id);
 						}) }, _('Edit')),
 						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() {
-							config.issueProfiles = config.issueProfiles.filter(function(item) { return item.id !== profile.id; });
-							return saveConfig().then(refresh);
+							return deleteProfile('issue', profile.id);
 						}) }, _('Delete'))
 					])
 				];
@@ -1186,11 +1226,14 @@ return view.extend({
 			const selectedDnsApi = providerTemplate(existing.dnsApi) ? (existing.dnsApi || 'dns_cf') : 'custom';
 			const name = input(existing.name || '', 'Gate staging');
 			const domain = input(existing.domain || '', 'gate.example.org');
+			const sanList = E('textarea', { 'class': 'cbi-input-text', 'rows': 3, 'placeholder': 'www.example.org\napi.example.org' }, (existing.domains || []).slice(1).join('\n'));
+			const challengeAlias = input(existing.challengeAlias || '', '');
+			const dnsSleep = E('input', { 'class': 'cbi-input-text', 'type': 'number', 'min': '0', 'value': existing.dnsSleep == null ? 0 : existing.dnsSleep });
 			const keyType = select(existing.keyType || 'ec256', [[ 'ec256', 'ECC P-256' ], [ 'ec384', 'ECC P-384' ], [ 'ec521', 'ECC P-521' ], [ 'rsa2048', 'RSA 2048' ], [ 'rsa3072', 'RSA 3072' ], [ 'rsa4096', 'RSA 4096' ], [ 'rsa8192', 'RSA 8192' ]]);
 			const account = select(existing.accountProfileId || accountOptions[0][0], accountOptions);
 			const deploy = select(existing.deployProfileId || '', deployOptions);
 			const validation = select(existing.validationMethod || 'dns', [[ 'dns', 'DNS-01' ], [ 'webroot', 'HTTP-01 Webroot' ], [ 'standalone', 'HTTP-01 Standalone' ], [ 'alpn', 'TLS-ALPN-01' ]]);
-			const testPolicy = select(existing.testModeOverride || 'inherit-global-test-mode', [[ 'inherit-global-test-mode', _('Inherit Global Test Mode') ], [ 'force-test-mode', _('Always Test Mode') ], [ 'force-real-mode', _('Always Real Mode') ]]);
+			const testPolicy = select(existing.testModeOverride || 'force-real-mode', [[ 'force-test-mode', _('Always Test Mode') ], [ 'force-real-mode', _('Always Real Mode') ]]);
 			const dnsApi = select(selectedDnsApi, DNS_PROVIDER_OPTIONS);
 			const customDnsApi = input(selectedDnsApi === 'custom' ? (existing.dnsApi || '') : '', 'dns_xxx');
 			const customDnsFilter = input('', 'cloudflare / aliyun / dns_cf');
@@ -1306,10 +1349,18 @@ return view.extend({
 			};
 
 			const buildProfile = function() {
+				const primary = domain.value.trim().toLowerCase();
+				const domains = [ primary ];
+				sanList.value.split(/[\s,]+/).forEach(function(item) {
+					item = item.trim().toLowerCase();
+					if (item && domains.indexOf(item) < 0)
+						domains.push(item);
+				});
 				return {
 					id: existing.id || id('issue'),
 					name: name.value.trim() || domain.value.trim(),
-					domain: domain.value.trim(),
+					domain: primary,
+					domains: domains,
 					accountProfileId: account.value,
 					deployProfileId: deploy.value,
 					keyType: keyType.value,
@@ -1317,6 +1368,8 @@ return view.extend({
 					testModeOverride: testPolicy.value,
 					dnsApi: dnsApi.value === 'custom' ? (customDnsApi.value.trim() || 'dns_cf') : dnsApi.value,
 					credentialMode: dnsApi.value === 'custom' ? 'custom' : credentialMode.value,
+					challengeAlias: challengeAlias.value.trim(),
+					dnsSleep: Math.max(0, parseInt(dnsSleep.value || '0', 10) || 0),
 					credentials: readCredentials()
 				};
 			};
@@ -1340,6 +1393,7 @@ return view.extend({
 				E('div', { 'class': 'acmesh-edit-form acmesh-edit-grid acmesh-edit-form-wide' }, [
 					field(_('Name'), name),
 					field(_('Domain'), domain),
+					field(_('SAN list'), sanList),
 					field(_('Account profile'), account),
 					field(_('Deploy profile'), deploy),
 					field(_('Key type'), keyType),
@@ -1351,6 +1405,8 @@ return view.extend({
 						[ _('Resolved deploy profile'), resolvedPreview.deploy ? resolvedPreview.deployLabel : _('No deploy profile') ]
 					]),
 					field(_('DNS provider'), dnsApi),
+					field(_('DNS challenge alias (optional)'), challengeAlias),
+					field(_('DNS propagation delay (seconds)'), dnsSleep),
 					customDnsField,
 					customDnsFilterField,
 					customDnsCandidateField,
@@ -1395,7 +1451,7 @@ return view.extend({
 					profile.reloadcmd || '-',
 					E('div', { 'class': 'acmesh-row-actions' }, [
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return runDeployProfile(profile, config.global.testMode === false ? 'deploy-run' : 'deploy-test');
+							return runDeployProfile(profile, 'deploy-run');
 						}) }, _('Deploy')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
 							return runDeployProfile(profile);
@@ -1404,8 +1460,7 @@ return view.extend({
 							return setEdit('deploy', profile.id);
 						}) }, _('Edit')),
 						E('button', { 'class': 'btn cbi-button cbi-button-remove', 'click': ui.createHandlerFn(this, function() {
-							config.deployProfiles = config.deployProfiles.filter(function(item) { return item.id !== profile.id; });
-							return saveConfig().then(refresh);
+							return deleteProfile('deploy', profile.id);
 						}) }, _('Delete'))
 					])
 				];
@@ -1552,6 +1607,8 @@ return view.extend({
 					? renderIssueList()
 					: activeTab === 'migration'
 						? renderConfigMigration()
+						: activeTab === 'authorizations'
+							? renderAuthorizationRecords()
 						: renderDeployList();
 			body.appendChild(content);
 			Array.prototype.forEach.call(document.querySelectorAll('[data-acmesh-tab]'), function(btn) {
@@ -1606,6 +1663,7 @@ return view.extend({
 				E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'data-acmesh-tab': 'issue', 'click': ui.createHandlerFn(this, function() { return setTab('issue'); }) }, _('Issue Profiles')),
 				E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'data-acmesh-tab': 'deploy', 'click': ui.createHandlerFn(this, function() { return setTab('deploy'); }) }, _('Deploy Profiles')),
 				E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'data-acmesh-tab': 'migration', 'click': ui.createHandlerFn(this, function() { return setTab('migration'); }) }, _('Configuration migration'))
+				,E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'data-acmesh-tab': 'authorizations', 'click': ui.createHandlerFn(this, function() { return setTab('authorizations'); }) }, _('Authorization records'))
 			]),
 			body,
 			E('h3', {}, _('Task output')),

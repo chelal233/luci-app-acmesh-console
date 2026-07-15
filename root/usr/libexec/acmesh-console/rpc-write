@@ -9,6 +9,7 @@ method="${1:-}"
 shift || true
 
 case "$method" in
+	config_get) command=config-get ;;
 	config_save) command=config-save ;;
 	import_preview) command=import-preview ;;
 	import_apply) command=import-apply ;;

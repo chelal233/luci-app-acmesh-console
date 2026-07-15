@@ -13,7 +13,8 @@ require_text() {
 }
 
 require_text "Test mode policy"
-require_text "inherit-global-test-mode"
+require_text "force-test-mode"
+require_text "force-real-mode"
 require_text "testModeOverride"
 
 reject_text() {
@@ -29,6 +30,7 @@ reject_text "renderDefaultsList"
 reject_text "renderDefaultsForm"
 reject_text "data-acmesh-tab': 'core'"
 reject_text "field(_('Global Test Mode')"
+reject_text "Inherit Global Test Mode"
 reject_text "Install selected tag"
 reject_text "Upgrade selected tag"
 

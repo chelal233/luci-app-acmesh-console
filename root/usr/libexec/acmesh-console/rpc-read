@@ -30,10 +30,6 @@ case "$method" in
 		[ "$#" = 0 ] || unsupported_argument
 		"$ACMESHCTL" providers
 		;;
-	config_get)
-		[ "$#" = 0 ] || unsupported_argument
-		"$ACMESHCTL" config-get
-		;;
 	core_status)
 		[ "$#" = 0 ] || unsupported_argument
 		"$ACMESHCTL" core-status

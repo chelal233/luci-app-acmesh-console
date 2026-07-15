@@ -1,6 +1,19 @@
 #!/bin/sh
 
-rm -f /www/luci-static/resources/view/acmesh/operations.js
+rm -f \
+	/www/luci-static/resources/view/acmesh/operations.js \
+	/www/luci-static/resources/acmesh/api.js \
+	/www/luci-static/resources/acmesh/authorization.js
 mkdir -p /etc/acmesh-console /etc/acmesh-console/ssh
 chmod 700 /etc/acmesh-console /etc/acmesh-console/ssh
+for file in \
+	/etc/acmesh-console/config.json \
+	/etc/acmesh-console/instance-id \
+	/etc/acmesh-console/authorizations.json \
+	/etc/acmesh-console/ssh/id_ed25519 \
+	/etc/acmesh-console/ssh/id_ed25519.pub \
+	/etc/acmesh-console/ssh/known_hosts
+do
+	[ ! -e "$file" ] || chmod 600 "$file"
+done
 exit 0

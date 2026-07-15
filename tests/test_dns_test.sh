@@ -3,9 +3,14 @@ set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
+. "$ACMESH_LIB_DIR/json.sh"
+. "$ROOT/tests/lib/cli_request.sh"
 
 run_ctl() {
-	sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" "$@"
+	case "$1" in
+		dns-test) acmesh_test_cli_request "$@" ;;
+		*) sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" "$@" ;;
+	esac
 }
 
 cf_ok="$(run_ctl dns-test \

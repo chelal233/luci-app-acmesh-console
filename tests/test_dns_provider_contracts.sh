@@ -2,6 +2,9 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
+. "$ACMESH_LIB_DIR/json.sh"
+. "$ROOT/tests/lib/cli_request.sh"
 OPS="$ROOT/htdocs/luci-static/resources/view/acmesh/operations_v2.js"
 PROVIDER="$ROOT/root/usr/libexec/acmesh-console/lib/provider.sh"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
@@ -59,13 +62,7 @@ done
 check_preview_envs() {
 	dns_api="$1"
 	shift
-	set -- "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue \
-		--domain example.com \
-		--key-type ec256 \
-		--validation-method dns \
-		--dns-api "$dns_api" \
-		--test-mode "$@"
-	out="$(sh "$@")"
+	out="$(acmesh_test_cli_request preview-issue --domain example.com --key-type ec256 --validation-method dns --dns-api "$dns_api" --test-mode "$@")"
 	case "$out" in
 		*"--dns '$dns_api'"*) ;;
 		*) echo "preview command missing dns api $dns_api"; echo "$out"; exit 1 ;;
@@ -127,7 +124,7 @@ check_preview_envs dns_dgon --credential DO_API_KEY=do-key
 check_preview_envs dns_gcloud --credential CLOUDSDK_ACTIVE_CONFIG_NAME=default
 check_preview_envs dns_zonomi --credential ZM_Key=zonomi-key
 
-cf_token_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue \
+cf_token_preview="$(acmesh_test_cli_request preview-issue \
 	--domain example.com \
 	--key-type ec256 \
 	--validation-method dns \
@@ -147,7 +144,7 @@ case "$cf_token_preview" in
 	*"secret-token"*) echo "cloudflare token leaked"; echo "$cf_token_preview"; exit 1 ;;
 esac
 
-cf_global_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue \
+cf_global_preview="$(acmesh_test_cli_request preview-issue \
 	--domain example.com \
 	--key-type ec256 \
 	--validation-method dns \

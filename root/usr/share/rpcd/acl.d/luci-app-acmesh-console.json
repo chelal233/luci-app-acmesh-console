@@ -11,7 +11,7 @@
     },
     "write": {
       "file": {
-        "/var/run/acmesh-console/requests": [ "write", "remove" ],
+        "/var/run/acmesh-console/requests/*": [ "write", "remove" ],
         "/usr/libexec/acmesh-console/rpc-write": [ "exec" ]
       },
       "ubus": {

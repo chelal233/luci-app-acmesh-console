@@ -7,6 +7,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const poPath = path.join(root, 'po', 'zh_Hans', 'acmesh-console.po');
 const viewDir = path.join(root, 'htdocs', 'luci-static', 'resources', 'view', 'acmesh');
+const sharedDir = path.join(root, 'htdocs', 'luci-static', 'resources', 'acmesh');
 
 function unescapePo(text) {
 	return text.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
@@ -25,8 +26,9 @@ for (const match of po.matchAll(/^msgid "((?:\\.|[^"])*)"/gm)) {
 }
 
 const missing = [];
-for (const file of fs.readdirSync(viewDir).filter(name => name.endsWith('.js')).sort()) {
-	const text = fs.readFileSync(path.join(viewDir, file), 'utf8');
+for (const entry of [ viewDir, sharedDir ].flatMap(dir => fs.readdirSync(dir).filter(name => name.endsWith('.js')).sort().map(file => [ dir, file ]))) {
+	const file = entry[1];
+	const text = fs.readFileSync(path.join(entry[0], file), 'utf8');
 	for (const match of text.matchAll(/_\('((?:\\.|[^'])*)'\)/g)) {
 		const id = unescapeJs(match[1]);
 		if (!msgids.has(id))
