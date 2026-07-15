@@ -1,8 +1,8 @@
 'use strict';
 'require view';
 'require ui';
-'require acmesh.api as acmeshApi';
-'require acmesh.authorization as authorization';
+'require acmesh.api_v2 as acmeshApi';
+'require acmesh.authorization_v2 as authorization';
 
 const DEFAULT_CONFIG = {
 	global: {
@@ -576,7 +576,7 @@ function importedCredentialMode(dnsApi, rawVars) {
 
 return view.extend({
 	load: function() {
-		return Promise.all([ acmeshApi.read('config_get'), acmeshApi.read('core_status'), acmeshApi.read('status'), acmeshApi.read('authorization_list') ]);
+		return Promise.all([ acmeshApi.write('config_get', {}), acmeshApi.read('core_status'), acmeshApi.read('status'), acmeshApi.read('authorization_list') ]);
 	},
 
 	render: function(results) {
@@ -597,7 +597,7 @@ return view.extend({
 		};
 
 		const refresh = function() {
-			return acmeshApi.read('config_get').then(function(next) {
+			return acmeshApi.write('config_get', {}).then(function(next) {
 				config = mergeConfig(next);
 				renderBody();
 			});
@@ -714,12 +714,7 @@ return view.extend({
 				ui.addNotification(null, E('p', {}, _('Domain is required')), 'danger');
 				return Promise.resolve();
 			}
-			return runTask('dns_test', {
-				domain: profile.domain,
-				dnsApi: profile.dnsApi || 'dns_cf',
-				credentials: credentialArgs(profile),
-				testMode: effectiveTestMode(profile)
-			});
+			return runTask('dns_test', { profileId: profile.id });
 		};
 
 		const accountEmail = function(account) {
@@ -879,16 +874,20 @@ return view.extend({
 			};
 
 			const exportConfig = function() {
-				const envelope = buildMigrationEnvelope(config);
-				const blob = new Blob([ JSON.stringify(envelope, null, 2) + '\n' ], { type: 'application/json' });
-				const url = URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = url;
-				link.download = 'acmesh-console-config-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
-				document.body.appendChild(link);
-				link.click();
-				link.remove();
-				URL.revokeObjectURL(url);
+				return authorization.run('secret_export', { scope: 'config-with-secrets' }).then(function(envelope) {
+					if (!envelope || envelope.cancelled || !envelope.ok)
+						return envelope;
+					const blob = new Blob([ JSON.stringify(envelope, null, 2) + '\n' ], { type: 'application/json' });
+					const url = URL.createObjectURL(blob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = 'acmesh-console-config-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+					document.body.appendChild(link);
+					link.click();
+					link.remove();
+					URL.revokeObjectURL(url);
+					return envelope;
+				});
 			};
 
 			file.addEventListener('change', function() {

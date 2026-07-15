@@ -58,6 +58,7 @@ require_text "background:rgba(127,127,127,.10)"
 require_text "border-bottom:1px solid rgba(127,127,127,.24)"
 require_text "coreTaskPayload"
 require_text "acmeshApi.write('config_save'"
+require_text "L.resolveDefault(acmeshApi.write('config_get', {}), {})"
 require_text "authorization.run('core_install'"
 require_text "authorization.run('core_upgrade'"
 

@@ -119,6 +119,11 @@ ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.2.0 ACMESH_AUTH_CORE_EMAI
 acmesh_auth_summary "$TMP/out/d1" "$TMP/out/summary"
 ! grep -E 'top-secret|certificate-secret|BEGIN' "$TMP/out/summary" >/dev/null
 grep -F '"canonicalVersion":1,"ackVersion":1' "$TMP/out/summary" >/dev/null
+[ "$(jsonfilter -i "$TMP/out/summary" -e '@.host')" = router.example ]
+[ "$(jsonfilter -i "$TMP/out/summary" -e '@.keyFile')" = /etc/ssl/key.pem ]
+[ "$(jsonfilter -i "$TMP/out/summary" -e '@.reloadCommand')" = '/etc/init.d/uhttpd reload' ]
+[ "$(jsonfilter -i "$TMP/out/summary" -e '@.hostKeyFingerprint')" = SHA256:one ]
+[ -n "$(jsonfilter -i "$TMP/out/summary" -e '@.keyPemDigest')" ]
 ACMESH_AUTH_CANON_VERSION=2 ACMESH_AUTH_ACK_VERSION=3 \
 	ACMESH_AUTH_ACME_HOME=/etc/acme ACMESH_AUTH_CORE_TAG=3.2.0 \
 	acmesh_auth_snapshot core-upgrade core acme.sh "$TMP/out/versioned"

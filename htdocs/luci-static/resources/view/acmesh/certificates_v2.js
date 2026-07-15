@@ -1,8 +1,8 @@
 'use strict';
 'require view';
 'require ui';
-'require acmesh.api as acmeshApi';
-'require acmesh.authorization as authorization';
+'require acmesh.api_v2 as acmeshApi';
+'require acmesh.authorization_v2 as authorization';
 
 function panel(title, value, warning) {
 	return E('div', { 'class': 'acmesh-panel ' + (warning ? 'is-warning' : '') }, [
@@ -63,7 +63,11 @@ function renderTable(headers, rows, emptyText) {
 
 return view.extend({
 	load: function() {
-		return Promise.all([ acmeshApi.read('status'), acmeshApi.read('core_status'), acmeshApi.read('config_get') ]);
+		return Promise.all([
+			acmeshApi.read('status'),
+			acmeshApi.read('core_status'),
+			L.resolveDefault(acmeshApi.write('config_get', {}), {})
+		]);
 	},
 
 	render: function(results) {

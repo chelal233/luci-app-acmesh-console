@@ -191,26 +191,67 @@ acmesh_auth_fingerprint() {
 	printf 'sha256:%s\n' "$(sha256sum "$snapshot" | awk '{print $1}')"
 }
 
-acmesh_auth_summary() {
+acmesh_auth_summary_array() {
+	snapshot="$1" wanted="$2" first=1
+	while IFS= read -r line; do
+		case "$line" in
+			a:"$wanted":*)
+				rest="${line#a:}"; key="${rest%%:*}"; rest="${rest#*:}"
+				index="${rest%%:*}"; rest="${rest#*:}"; length="${rest%%:*}"; value="${rest#*:}"
+				case "$index:$length" in *[!0-9:]*|:*) return 2;; esac
+				[ "${#value}" = "$length" ] || return 2
+				[ "$first" = 1 ] || printf ','
+				printf '"%s"' "$(acmesh_json_escape "$value")"; first=0
+				;;
+		esac
+	done < "$snapshot"
+}
+
+acmesh_auth_summary() (
 	snapshot="${1:-}" output="${2:-}"
-	[ -f "$snapshot" ] && [ -n "$output" ] || return 2
+	[ -f "$snapshot" ] && [ ! -L "$snapshot" ] && [ -n "$output" ] || return 2
 	dir="${output%/*}"; acmesh_private_dir "$dir" || return 1
-	operation="$(sed -n 's/^s:[0-9][0-9]*:operation:[0-9][0-9]*://p' "$snapshot")"
-	subject_type="$(sed -n 's/^s:[0-9][0-9]*:subjectType:[0-9][0-9]*://p' "$snapshot")"
-	subject_id="$(sed -n 's/^s:[0-9][0-9]*:subjectId:[0-9][0-9]*://p' "$snapshot")"
-	canonical_version="$(sed -n 's/^s:[0-9][0-9]*:canonicalVersion:[0-9][0-9]*://p' "$snapshot")"
-	ack_version="$(sed -n 's/^s:[0-9][0-9]*:ackVersion:[0-9][0-9]*://p' "$snapshot")"
+	operation="$(acmesh_auth_snapshot_value "$snapshot" operation)"
+	subject_type="$(acmesh_auth_snapshot_value "$snapshot" subjectType)"
+	subject_id="$(acmesh_auth_snapshot_value "$snapshot" subjectId)"
+	canonical_version="$(acmesh_auth_snapshot_value "$snapshot" canonicalVersion)"
+	ack_version="$(acmesh_auth_snapshot_value "$snapshot" ackVersion)"
 	printf '%s\n' "$canonical_version" | grep -Eq '^[1-9][0-9]*$' || return 2
 	printf '%s\n' "$ack_version" | grep -Eq '^[1-9][0-9]*$' || return 2
 	fingerprint="$(acmesh_auth_fingerprint "$snapshot")" || return 1
-	(umask 077; printf '{"operation":"%s","subjectType":"%s","subjectId":"%s","fingerprint":"%s","canonicalVersion":%s,"ackVersion":%s}\n' \
-		"$(acmesh_json_escape "$operation")" \
-		"$(acmesh_json_escape "$subject_type")" \
-		"$(acmesh_json_escape "$subject_id")" \
-		"$(acmesh_json_escape "$fingerprint")" \
-		"$canonical_version" "$ack_version" > "$output") || return 1
-	chmod 600 "$output"
-}
+	tmp="$dir/.${output##*/}.$$.$(date +%s).tmp"
+	trap 'rm -f "$tmp"' HUP INT TERM EXIT
+	(umask 077
+		printf '{"operation":"%s","subjectType":"%s","subjectId":"%s","fingerprint":"%s","canonicalVersion":%s,"ackVersion":%s' \
+			"$(acmesh_json_escape "$operation")" "$(acmesh_json_escape "$subject_type")" \
+			"$(acmesh_json_escape "$subject_id")" "$(acmesh_json_escape "$fingerprint")" \
+			"$canonical_version" "$ack_version"
+		while IFS= read -r line; do
+			case "$line" in
+				s:*)
+					rest="${line#s:}"; key_length="${rest%%:*}"; rest="${rest#*:}"
+					key="${rest%%:*}"; rest="${rest#*:}"; value_length="${rest%%:*}"; value="${rest#*:}"
+					case "$key_length:$value_length" in *[!0-9:]*|:*) exit 2;; esac
+					[ "${#key}" = "$key_length" ] && [ "${#value}" = "$value_length" ] || exit 2
+					case "$key" in canonicalVersion|ackVersion|instanceId|operation|subjectType|subjectId) continue;; esac
+					printf ',"%s":"%s"' "$(acmesh_json_escape "$key")" "$(acmesh_json_escape "$value")"
+					;;
+				b:*) key="${line#b:}"; value="${key#*:}"; key="${key%%:*}"; case "$value" in true|false) ;; *) exit 2;; esac; printf ',"%s":%s' "$(acmesh_json_escape "$key")" "$value" ;;
+				n:*) key="${line#n:}"; printf ',"%s":null' "$(acmesh_json_escape "$key")" ;;
+				a:*) key="${line#a:}"; key="${key%%:*}"; case "$key" in domains|credentialKeys) ;; *) exit 2;; esac ;;
+				*) exit 2 ;;
+			esac
+		done < "$snapshot"
+		for array_key in domains credentialKeys; do
+			if grep -F "a:$array_key:" "$snapshot" >/dev/null; then
+				printf ',"%s":[' "$array_key"; acmesh_auth_summary_array "$snapshot" "$array_key" || exit $?; printf ']'
+			fi
+		done
+		printf '}\n'
+	) > "$tmp" || return 1
+	chmod 600 "$tmp" && mv -f "$tmp" "$output" && chmod 600 "$output" || return 1
+	trap - HUP INT TERM EXIT
+)
 
 acmesh_auth_now() { date +%s; }
 acmesh_auth_valid_id() { printf '%s\n' "${1-}" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'; }

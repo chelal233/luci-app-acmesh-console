@@ -3,6 +3,9 @@ set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
+. "$ACMESH_LIB_DIR/json.sh"
+. "$ROOT/tests/lib/cli_request.sh"
+export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
 export ACMESH_TASK_STATE_DIR="$ROOT/tests/.tmp/deploy-state"
 export ACMESH_TASK_LOG_DIR="$ROOT/tests/.tmp/deploy-log"
 export ACMESH_DEPLOY_LOCK_DIR="$ROOT/tests/.tmp/deploy-locks"
@@ -148,7 +151,7 @@ for forbidden in deploy-test-log-secret /etc/ssl/example.key --install-cert --re
 	esac
 done
 
-pem_out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-test \
+pem_out="$(acmesh_test_cli_request deploy-test \
 	--type ssh \
 	--cert-source paste-pem \
 	--domain pem.example.com \
@@ -174,6 +177,22 @@ for forbidden in secret-private-key /tmp/acmesh-console-deploy deploy@192.0.2.20
 		*"$forbidden"*) echo "deploy pem preview exposed command data: $forbidden"; echo "$pem_out"; exit 1 ;;
 	esac
 done
+
+pem_preview="$(acmesh_test_cli_request deploy-preview \
+	--type ssh \
+	--cert-source paste-pem \
+	--domain preview-pem.example.com \
+	--host 192.0.2.21 \
+	--key-file /etc/ssl/preview-pem.key \
+	--fullchain-file /etc/ssl/preview-pem.fullchain.pem \
+	--key-pem '-----BEGIN PRIVATE KEY-----
+preview-secret-private-key
+-----END PRIVATE KEY-----' \
+	--fullchain-pem '-----BEGIN CERTIFICATE-----
+preview-public-cert
+-----END CERTIFICATE-----')"
+case "$pem_preview" in *'"ok":true'*'"command"'*'[task-private-pem-key]'*) ;; *) echo "deploy pem stdin preview failed"; echo "$pem_preview"; exit 1;; esac
+case "$pem_preview" in *preview-secret-private-key*|*preview-public-cert*) echo "deploy pem stdin preview leaked PEM"; exit 1;; esac
 
 if unsafe_preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" deploy-preview \
 	--type ssh \

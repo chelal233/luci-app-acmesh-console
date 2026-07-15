@@ -6,6 +6,7 @@
 : "${ACMESH_CONSOLE_UCI_CONFIG:=/etc/config/acmesh-console}"
 : "${ACMESH_PENDING_IMPORT_DIR:=/var/run/acmesh-console/pending-imports}"
 : "${ACMESH_CONFIG_LOCK_FILE:=${ACMESH_CONSOLE_CONFIG%/*}/config.lock}"
+: "${ACMESH_CONFIG_SECRET_PLACEHOLDER:=********}"
 
 acmesh_config_uci_option() {
 	key="$1"
@@ -29,22 +30,111 @@ acmesh_config_path() {
 	printf '%s\n' "$ACMESH_CONSOLE_CONFIG"
 }
 
+acmesh_config_find_profile_index() {
+	path="$1" array="$2" wanted_id="$3" index=0
+	jsonfilter -i "$path" -e "@.$array[*].id" 2>/dev/null | while IFS= read -r candidate; do
+		if [ "$candidate" = "$wanted_id" ]; then printf '%s\n' "$index"; exit 0; fi
+		index=$((index + 1))
+	done
+}
+
+acmesh_config_redact_file() (
+	set +u
+	path="$1"; acmesh_profile_jshn || return 1; json_load_file "$path" || return 1
+	json_select issueProfiles || return 1; json_get_keys indexes
+	for index in $indexes; do
+		json_select "$index" || return 1
+		json_get_type credentials_type credentials 2>/dev/null || credentials_type=
+		if [ "$credentials_type" = object ]; then
+			json_select credentials || return 1; json_get_keys credential_keys
+			for credential_key in $credential_keys; do json_add_string "$credential_key" "$ACMESH_CONFIG_SECRET_PLACEHOLDER"; done
+			json_select ..
+		fi
+		json_select ..
+	done
+	json_select ..
+	json_select deployProfiles || return 1; json_get_keys indexes
+	for index in $indexes; do
+		json_select "$index" || return 1
+		for pem_key in keyPem fullchainPem; do
+			json_get_var pem_value "$pem_key"
+			[ -z "$pem_value" ] || json_add_string "$pem_key" "$ACMESH_CONFIG_SECRET_PLACEHOLDER"
+		done
+		json_select ..
+	done
+	json_select ..
+	json_dump
+)
+
 acmesh_config_get() {
 	path="$(acmesh_config_path)"
 	if [ -s "$path" ]; then
-		cat "$path"
+		acmesh_config_validate_file "$path" || return 1
+		acmesh_config_redact_file "$path"
 	else
 		acmesh_config_default_json
 	fi
 }
 
+acmesh_config_materialize_secrets() (
+	set +u
+	request_file="$1" output="$2" current="$(acmesh_config_path)"
+	acmesh_profile_jshn || return 1; json_load_file "$request_file" || return 2
+	json_select issueProfiles || return 2; json_get_keys indexes
+	for index in $indexes; do
+		json_select "$index" || return 2; json_get_var profile_id id; json_get_var new_dns_api dnsApi; json_get_var new_credential_mode credentialMode
+		acmesh_profile_validate_id "$profile_id" || return 2
+		old_index="$(acmesh_config_find_profile_index "$current" issueProfiles "$profile_id")"
+		json_get_type credentials_type credentials 2>/dev/null || credentials_type=
+		if [ "$credentials_type" = object ]; then
+			json_select credentials || return 2; json_get_keys credential_keys
+			for credential_key in $credential_keys; do
+				acmesh_profile_env_name "$credential_key" || return 2
+				json_get_var credential_value "$credential_key"
+				[ "$credential_value" = "$ACMESH_CONFIG_SECRET_PLACEHOLDER" ] || continue
+				[ -n "$old_index" ] || return 2
+				[ "$(jsonfilter -i "$current" -e "@.issueProfiles[$old_index].dnsApi" 2>/dev/null || true)" = "$new_dns_api" ] || return 2
+				[ "$(jsonfilter -i "$current" -e "@.issueProfiles[$old_index].credentialMode" 2>/dev/null || true)" = "$new_credential_mode" ] || return 2
+				[ "$(jsonfilter -i "$current" -t "@.issueProfiles[$old_index].credentials.$credential_key" 2>/dev/null || true)" = string ] || return 2
+				old_value="$(jsonfilter -i "$current" -e "@.issueProfiles[$old_index].credentials.$credential_key")" || return 2
+				json_add_string "$credential_key" "$old_value"
+			done
+			json_select ..
+		fi
+		json_select ..
+	done
+	json_select ..
+	json_select deployProfiles || return 2; json_get_keys indexes
+	for index in $indexes; do
+		json_select "$index" || return 2; json_get_var profile_id id; json_get_var new_cert_source certSource
+		acmesh_profile_validate_id "$profile_id" || return 2
+		old_index="$(acmesh_config_find_profile_index "$current" deployProfiles "$profile_id")"
+		for pem_key in keyPem fullchainPem; do
+			json_get_var pem_value "$pem_key"
+			[ "$pem_value" = "$ACMESH_CONFIG_SECRET_PLACEHOLDER" ] || continue
+			[ -n "$old_index" ] || return 2
+			[ "$new_cert_source" = paste-pem ] || return 2
+			[ "$(jsonfilter -i "$current" -e "@.deployProfiles[$old_index].certSource" 2>/dev/null || true)" = paste-pem ] || return 2
+			[ "$(jsonfilter -i "$current" -t "@.deployProfiles[$old_index].$pem_key" 2>/dev/null || true)" = string ] || return 2
+			old_value="$(jsonfilter -i "$current" -e "@.deployProfiles[$old_index].$pem_key")" || return 2
+			[ -n "$old_value" ] || return 2
+			json_add_string "$pem_key" "$old_value"
+		done
+		json_select ..
+	done
+	json_select ..
+	json_dump | acmesh_atomic_write "$output" 600
+)
+
 acmesh_config_save_file_locked() (
 	set +u
-	request_file="$1"
-	if ! acmesh_config_validate_file "$request_file"; then
+	request_file="$1"; materialized="${request_file}.materialized.$$"
+	trap 'rm -f "$materialized"' HUP INT TERM EXIT
+	if ! acmesh_config_materialize_secrets "$request_file" "$materialized" || ! acmesh_config_validate_file "$materialized"; then
 		printf '{"ok":false,"error":"configuration schema validation failed"}\n'
 		return 2
 	fi
+	request_file="$materialized"
 	path="$(acmesh_config_path)"
 	if [ -f "$path" ] && acmesh_config_validate_file "$path"; then
 		for array in accountProfiles issueProfiles deployProfiles; do
@@ -65,6 +155,7 @@ acmesh_config_save_file_locked() (
 		return 1
 	}
 	printf '{"ok":true,"path":"%s"}\n' "$(acmesh_json_escape "$path")"
+	rm -f "$materialized"; trap - HUP INT TERM EXIT
 )
 
 acmesh_config_save_file() ( acmesh_lock_run "$ACMESH_CONFIG_LOCK_FILE" acmesh_config_save_file_locked "$1"; )

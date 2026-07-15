@@ -4,7 +4,7 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
 
-out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --ca letsencrypt_staging)"
+out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --ca letsencrypt_staging --account-email ops@example.org)"
 
 case "$out" in
 	*'"ok":true'*"--server 'letsencrypt_test'"*"--dns 'dns_cf'"*) ;;

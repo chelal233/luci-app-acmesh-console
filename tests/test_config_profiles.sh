@@ -30,7 +30,7 @@ case "$default_json" in
 	*) echo "default config missing profile arrays"; echo "$default_json"; exit 1 ;;
 esac
 
-saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[]}'
+saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[{"id":"pem1","name":"PEM","type":"local","certSource":"paste-pem","keyPem":"private-key-secret","fullchainPem":"certificate-secret","keyFile":"/tmp/key.pem","fullchainFile":"/tmp/fullchain.pem","owner":"root","group":"root","mode":"0600"}]}'
 request="$ROOT/tests/.tmp/config-save-request.json"
 printf '%s\n' "$saved" > "$request"
 chmod 600 "$request"
@@ -53,7 +53,37 @@ esac
 loaded="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-get)"
 printf '%s' "$loaded" | jsonfilter -e '@.global.defaultAccountEmail' | grep -Fx ops@example.com >/dev/null || { echo "saved config was not loaded"; exit 1; }
 printf '%s' "$loaded" | jsonfilter -e '@.accountProfiles[0].id' | grep -Fx acc1 >/dev/null || { echo "account profile was not loaded"; exit 1; }
-printf '%s' "$loaded" | jsonfilter -e '@.issueProfiles[0].credentials.CF_Token' | grep -Fx secret-token >/dev/null || { echo "issue credentials were not preserved"; exit 1; }
+printf '%s' "$loaded" | grep -F 'secret-token' >/dev/null && { echo "config-get leaked DNS credentials"; exit 1; } || :
+printf '%s' "$loaded" | grep -F 'private-key-secret' >/dev/null && { echo "config-get leaked private key PEM"; exit 1; } || :
+printf '%s' "$loaded" | grep -F 'certificate-secret' >/dev/null && { echo "config-get leaked certificate PEM"; exit 1; } || :
+[ "$(printf '%s' "$loaded" | jsonfilter -e '@.issueProfiles[0].credentials.CF_Token')" = '********' ] || { echo "DNS credential marker missing"; exit 1; }
+[ "$(printf '%s' "$loaded" | jsonfilter -e '@.deployProfiles[0].keyPem')" = '********' ] || { echo "PEM marker missing"; exit 1; }
+[ "$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e '@.issueProfiles[0].credentials.CF_Token')" = secret-token ] || { echo "stored DNS credential changed"; exit 1; }
+[ "$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e '@.deployProfiles[0].keyPem')" = private-key-secret ] || { echo "stored private key changed"; exit 1; }
+
+preserve_request="$ROOT/tests/.tmp/config-preserve-request.json"
+printf '%s\n' "$loaded" | sed 's/LE Staging/LE Staging Renamed/' > "$preserve_request"; chmod 600 "$preserve_request"
+sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-save --request-file "$preserve_request" >/dev/null
+[ "$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e '@.issueProfiles[0].credentials.CF_Token')" = secret-token ] || { echo "masked config save lost DNS credential"; exit 1; }
+[ "$(jsonfilter -i "$ACMESH_CONSOLE_CONFIG" -e '@.deployProfiles[0].keyPem')" = private-key-secret ] || { echo "masked config save lost private key"; exit 1; }
+
+. "$ACMESH_LIB_DIR/config.sh"
+mode_marker="$ROOT/tests/.tmp/config-mode-marker.json"
+printf '%s\n' "$loaded" | sed 's/"credentialMode": "token"/"credentialMode": "global-key"/' > "$mode_marker"; chmod 600 "$mode_marker"
+if acmesh_config_materialize_secrets "$mode_marker" "$mode_marker.out"; then
+	echo "credential marker crossed credential mode"; exit 1
+fi
+source_marker="$ROOT/tests/.tmp/config-source-marker.json"
+printf '%s\n' "$loaded" | sed 's/"certSource": "paste-pem"/"certSource": "managed-acme"/' > "$source_marker"; chmod 600 "$source_marker"
+if acmesh_config_materialize_secrets "$source_marker" "$source_marker.out"; then
+	echo "PEM marker crossed certificate source"; exit 1
+fi
+
+invalid_marker="$ROOT/tests/.tmp/config-invalid-marker.json"
+printf '%s\n' "$loaded" | sed 's/"id": "issue1"/"id": "new-issue"/' > "$invalid_marker"; chmod 600 "$invalid_marker"
+if sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-save --request-file "$invalid_marker" >/dev/null 2>&1; then
+	echo "new profile accepted a secret preservation marker"; exit 1
+fi
 
 if sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-save --json "$saved" >/dev/null 2>&1; then
 	echo "config-save should reject raw --json"

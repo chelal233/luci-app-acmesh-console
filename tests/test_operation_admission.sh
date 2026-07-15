@@ -23,7 +23,7 @@ export ACMESH_CONSOLE_CONFIG="$TMP/config/config.json" ACMESH_CONSOLE_UCI_CONFIG
 # router.  No authorization means challenge-only and no task creation.
 ssh-keygen -q -t ed25519 -N '' -f "$TMP/id_ed25519"
 cat > "$ACMESH_CONSOLE_CONFIG" <<JSON
-{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.org","coreTag":"v3.1.4","acmeHome":"$TMP/acme"},"accountProfiles":[{"id":"acc","name":"LE","ca":"letsencrypt","accountEmail":"ops@example.org"}],"issueProfiles":[{"id":"issue-real","name":"Issue","domain":"issue.example","accountProfileId":"acc","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret"}}],"deployProfiles":[{"id":"deploy-local","name":"Local","type":"local","certSource":"paste-pem","keyPem":"private","fullchainPem":"certificate","keyFile":"$TMP/out.key","fullchainFile":"$TMP/out.pem","owner":"root","group":"root","mode":"0600"},{"id":"deploy-ssh","name":"SSH","type":"ssh","certSource":"local-files","sourceKeyFile":"$TMP/source.key","sourceFullchainFile":"$TMP/source.pem","host":"192.0.2.1","user":"root","port":"22","sshKey":"$TMP/id_ed25519","keyFile":"/etc/ssl/key.pem","fullchainFile":"/etc/ssl/fullchain.pem","sudoMode":"never","owner":"root","group":"root","mode":"0600"}]}
+{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.org","coreTag":"v3.1.4","acmeHome":"$TMP/acme"},"accountProfiles":[{"id":"acc","name":"LE","ca":"letsencrypt","accountEmail":"ops@example.org"}],"issueProfiles":[{"id":"issue-real","name":"Issue","domain":"issue.example","accountProfileId":"acc","deployProfileId":"deploy-local","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret"}},{"id":"renew-link","name":"Renew link","domain":"renew.example","accountProfileId":"acc","deployProfileId":"deploy-renew","keyType":"ec256","validationMethod":"standalone","testModeOverride":"force-real-mode"}],"deployProfiles":[{"id":"deploy-local","name":"Local","type":"local","certSource":"paste-pem","keyPem":"private","fullchainPem":"certificate","keyFile":"$TMP/out.key","fullchainFile":"$TMP/out.pem","owner":"root","group":"root","mode":"0600"},{"id":"deploy-renew","name":"Renew","type":"local","certSource":"managed-acme","domain":"renew.example","keyType":"ec256","keyFile":"$TMP/renew.key","fullchainFile":"$TMP/renew.pem","owner":"root","group":"root","mode":"0600"},{"id":"deploy-ssh","name":"SSH","type":"ssh","certSource":"local-files","sourceKeyFile":"$TMP/source.key","sourceFullchainFile":"$TMP/source.pem","host":"192.0.2.1","user":"root","port":"22","sshKey":"$TMP/id_ed25519","keyFile":"/etc/ssl/key.pem","fullchainFile":"/etc/ssl/fullchain.pem","sudoMode":"never","owner":"root","group":"root","mode":"0600"}]}
 JSON
 chmod 600 "$ACMESH_CONSOLE_CONFIG"; printf private > "$TMP/source.key"; printf certificate > "$TMP/source.pem"
 # Real core operations use saved configuration as their only parameter source
@@ -36,6 +36,12 @@ set +e; core_mismatch="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" co
 # authorization identity required by the design.
 acmesh_operation_recompute issue issueProfile issue-real "$TMP/issue-credential-1" "$TMP/issue-credential-summary-1"
 issue_credential_fp="$(acmesh_auth_fingerprint "$TMP/issue-credential-1")"
+[ "$(acmesh_auth_snapshot_value "$TMP/issue-credential-1" subjectId)" = issue-real ]
+[ "$(jsonfilter -i "$TMP/issue-credential-summary-1" -e '@.ca')" = letsencrypt ]
+[ "$(jsonfilter -i "$TMP/issue-credential-summary-1" -e '@.domains[0]')" = issue.example ]
+[ "$(jsonfilter -i "$TMP/issue-credential-summary-1" -e '@.keyType')" = ec256 ]
+[ "$(jsonfilter -i "$TMP/issue-credential-summary-1" -e '@.deployProfileId')" = deploy-local ]
+[ "$(jsonfilter -i "$ACMESH_OPERATION_RESOLVED_FILE" -e '@.id')" = issue-real ]
 sed -i 's/"credentialMode":"token","credentials":{"CF_Token":"secret"}/"credentialMode":"global-key","credentials":{"CF_Email":"ops@example.org","CF_Key":"replacement"}/' "$ACMESH_CONSOLE_CONFIG"
 acmesh_operation_recompute issue issueProfile issue-real "$TMP/issue-credential-2" "$TMP/issue-credential-summary-2"
 [ "$issue_credential_fp" != "$(acmesh_auth_fingerprint "$TMP/issue-credential-2")" ]
@@ -54,8 +60,13 @@ matrix_start() {
 	printf '%s' "$matrix_out" | grep -F '"authorizationRequired":true' >/dev/null
 }
 matrix_start issue issueProfile issue-real
+[ "$(printf '%s' "$matrix_out" | jsonfilter -e '@.riskSummary.ca')" = letsencrypt ]
+[ "$(printf '%s' "$matrix_out" | jsonfilter -e '@.riskSummary.domains[0]')" = issue.example ]
+[ "$(printf '%s' "$matrix_out" | jsonfilter -e '@.riskSummary.keyType')" = ec256 ]
 matrix_start renew certificate ecc.renew.example
+[ "$(printf '%s' "$matrix_out" | jsonfilter -e '@.riskSummary.deployProfileId')" = deploy-renew ]
 matrix_start deploy-run deployProfile deploy-local
+[ "$(printf '%s' "$matrix_out" | jsonfilter -e '@.riskSummary.keyFile')" = "$TMP/out.key" ]
 matrix_start core-install global core
 matrix_start core-upgrade global core
 matrix_start ssh-key-convert sshKey deploy-ssh
@@ -66,6 +77,9 @@ matrix_start ssh-key-convert sshKey deploy-ssh
 mkdir -p "$TMP/renew-final"; chmod 700 "$TMP/renew-final"
 acmesh_operation_recompute renew certificate ecc.renew.example "$TMP/renew-authorized.snapshot" "$TMP/renew-authorized.summary"
 renew_authorized_fp="$(acmesh_auth_fingerprint "$TMP/renew-authorized.snapshot")"
+[ "$(acmesh_auth_snapshot_value "$TMP/renew-authorized.snapshot" subjectId)" = ecc.renew.example ]
+[ "$(jsonfilter -i "$TMP/renew-authorized.summary" -e '@.domains[0]')" = renew.example ]
+[ "$(jsonfilter -i "$TMP/renew-authorized.summary" -e '@.deployProfileId')" = deploy-renew ]
 sed -i "s/Le_Webroot='dns_cf'/Le_Webroot='dns_route53'/" "$TMP/acme/renew.example_ecc/renew.example.conf"
 acmesh_execute_renew() { printf executed > "$TMP/renew-executed"; }
 set +e; acmesh_operation_run_renew_locked ecc.renew.example "$renew_authorized_fp" "$TMP/renew-final" >/dev/null 2>&1; renew_changed_rc=$?; set -e

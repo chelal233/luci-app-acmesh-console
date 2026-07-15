@@ -21,6 +21,7 @@ export ACMESHCTL="$bin/acmeshctl"
 
 grep -F '"/usr/libexec/acmesh-console/rpc-read": [ "exec" ]' "$ACL" >/dev/null
 grep -F '"/usr/libexec/acmesh-console/rpc-write": [ "exec" ]' "$ACL" >/dev/null
+grep -F '"/var/run/acmesh-console/requests/*": [ "write", "remove" ]' "$ACL" >/dev/null
 ! grep -F '"/usr/libexec/acmesh-console/acmeshctl": [ "exec" ]' "$ACL" >/dev/null
 ! grep -F '"/etc/acme": [ "list", "read" ]' "$ACL" >/dev/null
 ! grep -R -- '--credential\|--key-pem\|--fullchain-pem\|--json' "$VIEWS" >/dev/null
@@ -39,6 +40,14 @@ printf '%s' "$read_error" | grep -F 'unsupported method' >/dev/null
 printf '%s' "$write_error" | grep -F '"ok":false' >/dev/null
 printf '%s' "$write_error" | grep -F 'unsupported method' >/dev/null
 [ ! -e "$calls" ] || { echo "unsupported RPC methods invoked acmeshctl"; exit 1; }
+
+set +e
+config_read_error="$(sh "$ROOT/root/usr/libexec/acmesh-console/rpc-read" config_get 2>/dev/null)"
+config_read_rc=$?
+set -e
+[ "$config_read_rc" = 2 ] || { echo "rpc-read config_get should be unavailable"; exit 1; }
+printf '%s' "$config_read_error" | grep -F 'unsupported method' >/dev/null
+grep -F 'config_get) command=config-get' "$ROOT/root/usr/libexec/acmesh-console/rpc-write" >/dev/null
 
 set +e
 authorization_error="$(ACMESHCTL="$ROOT/root/usr/libexec/acmesh-console/acmeshctl" sh "$ROOT/root/usr/libexec/acmesh-console/rpc-read" authorization_list 2>/dev/null)"

@@ -1029,7 +1029,7 @@ acmesh_execute_profile_deploy_guarded() (
 	[ -n "${ACMESH_CURRENT_TASK_ID:-}" ] || return 2
 	workspace="$(acmesh_task_workspace "$ACMESH_CURRENT_TASK_ID")" || return 1
 	trap 'acmesh_deploy_cleanup_temp_key' EXIT
-	acmesh_deploy_run_worker "$workspace" "${ACMESH_DEPLOY_WORKER_SCRIPT:-$ACMESH_LIB_DIR/deploy-worker.sh}" "$@"
+	acmesh_deploy_run_worker "$workspace" "${ACMESH_DEPLOY_WORKER_SCRIPT:-${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}/deploy-worker.sh}" "$@"
 )
 
 acmesh_execute_profile_deploy() {

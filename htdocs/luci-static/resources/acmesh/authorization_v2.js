@@ -1,6 +1,7 @@
 'use strict';
+'require baseclass';
 'require ui';
-'require acmesh.api as acmeshApi';
+'require acmesh.api_v2 as acmeshApi';
 
 const ACKNOWLEDGEMENT = _('The plugin will execute the operation strictly according to the parameters above. By continuing, you confirm that you have reviewed and accept the consequences of certificate issuance quotas, remote file overwrite, service reload, and target system configuration.');
 
@@ -96,4 +97,9 @@ function badge(status) {
 	return E('span', { 'class': 'acmesh-authorization-badge ' + (active ? 'is-authorized' : 'is-stale') }, active ? _('Authorized') : safeText(status));
 }
 
-return { run: run, showChallenge: showChallenge, showHostKey: showHostKey, badge: badge };
+return baseclass.extend({
+	run: run,
+	showChallenge: showChallenge,
+	showHostKey: showHostKey,
+	badge: badge
+});

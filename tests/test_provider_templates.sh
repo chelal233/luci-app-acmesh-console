@@ -3,6 +3,8 @@ set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
+. "$ACMESH_LIB_DIR/json.sh"
+. "$ROOT/tests/lib/cli_request.sh"
 
 providers="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" providers)"
 case "$providers" in
@@ -14,7 +16,7 @@ case "$providers" in
 	*) echo "provider list missing aliyun template"; echo "$providers"; exit 1 ;;
 esac
 
-preview="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" preview-issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --credential CF_Token=secret-token --test-mode)"
+preview="$(acmesh_test_cli_request preview-issue --domain example.com --key-type ec256 --validation-method dns --dns-api dns_cf --credential CF_Token=secret-token --test-mode)"
 case "$preview" in
 	*"CF_Token='***'"*"--dns 'dns_cf'"*) ;;
 	*) echo "credential preview did not mask cloudflare token"; echo "$preview"; exit 1 ;;

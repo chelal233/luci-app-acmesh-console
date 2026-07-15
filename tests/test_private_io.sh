@@ -661,8 +661,8 @@ export ACMESH_TASK_STATE_DIR="$ACMESH_RUNTIME_DIR/tasks"
 export ACMESH_TASK_LOG_DIR="$ACMESH_LOG_DIR/tasks"
 init_default_touched="$init_root/default-path-used"
 mkdir -p "$ACMESH_RUNTIME_DIR/tasks" "$ACMESH_LOG_DIR/tasks"
-chmod 700 "$ACMESH_RUNTIME_DIR" "$ACMESH_LOG_DIR"
-chmod 755 "$ACMESH_RUNTIME_DIR/tasks" "$ACMESH_LOG_DIR/tasks"
+chmod 755 "$ACMESH_RUNTIME_DIR" "$ACMESH_LOG_DIR" \
+	"$ACMESH_RUNTIME_DIR/tasks" "$ACMESH_LOG_DIR/tasks"
 mkdir() {
 	if [ "$1" = -p ]; then
 		case "$2" in
@@ -695,7 +695,7 @@ command -v acmesh_task_private_dir_upgrade >/dev/null 2>&1 || {
 	exit 1
 }
 if ! start_service; then
-	echo "start_service should safely tighten legacy root-owned 0755 task directories"
+	echo "start_service should safely tighten legacy root-owned 0755 private directories"
 	exit 1
 fi
 [ ! -e "$init_default_touched" ] || {

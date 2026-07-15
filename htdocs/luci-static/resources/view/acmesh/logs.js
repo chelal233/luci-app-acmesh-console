@@ -1,7 +1,7 @@
 'use strict';
 'require view';
 'require ui';
-'require acmesh.api as acmeshApi';
+'require acmesh.api_v2 as acmeshApi';
 
 function readTask(taskId) {
 	return Promise.all([

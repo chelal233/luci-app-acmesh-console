@@ -1,0 +1,45 @@
+#!/bin/sh
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+MAKEFILE="$ROOT/Makefile"
+CLEANUP="$ROOT/root/etc/uci-defaults/99-acmesh-console-cleanup"
+API_MODULE="$ROOT/htdocs/luci-static/resources/acmesh/api_v2.js"
+AUTHORIZATION_MODULE="$ROOT/htdocs/luci-static/resources/acmesh/authorization_v2.js"
+
+require() { grep -F "$2" "$1" >/dev/null || { echo "missing package contract: $2"; exit 1; }; }
+
+require "$MAKEFILE" 'define Package/luci-app-acmesh-console/conffiles'
+for path in \
+	/etc/config/acmesh-console \
+	/etc/acmesh-console/config.json \
+	/etc/acmesh-console/instance-id \
+	/etc/acmesh-console/authorizations.json \
+	/etc/acmesh-console/ssh/id_ed25519 \
+	/etc/acmesh-console/ssh/id_ed25519.pub \
+	/etc/acmesh-console/ssh/known_hosts
+do
+	require "$MAKEFILE" "$path"
+done
+require "$MAKEFILE" '+jsonfilter'
+require "$MAKEFILE" '+dropbearconvert'
+require "$MAKEFILE" 'define Build/Prepare/luci-app-acmesh-console'
+require "$MAKEFILE" 'find $(PKG_BUILD_DIR) -type f -exec chmod 0644 {} +'
+require "$MAKEFILE" '$(PKG_BUILD_DIR)/root/usr/libexec/acmesh-console/acmeshctl'
+require "$CLEANUP" '/www/luci-static/resources/view/acmesh/operations.js'
+require "$CLEANUP" '/www/luci-static/resources/acmesh/api.js'
+require "$CLEANUP" '/www/luci-static/resources/acmesh/authorization.js'
+require "$API_MODULE" "'require baseclass';"
+require "$API_MODULE" 'return baseclass.extend({'
+require "$AUTHORIZATION_MODULE" "'require baseclass';"
+require "$AUTHORIZATION_MODULE" 'return baseclass.extend({'
+[ -f "$ROOT/htdocs/luci-static/resources/view/acmesh/operations_v2.js" ]
+[ ! -f "$ROOT/htdocs/luci-static/resources/view/acmesh/operations.js" ]
+[ -f "$API_MODULE" ]
+[ -f "$AUTHORIZATION_MODULE" ]
+[ ! -f "$ROOT/htdocs/luci-static/resources/acmesh/api.js" ]
+[ ! -f "$ROOT/htdocs/luci-static/resources/acmesh/authorization.js" ]
+[ -f "$ROOT/README.md" ] || { echo 'README.md missing'; exit 1; }
+[ -f "$ROOT/LICENSE" ] || { echo 'LICENSE missing'; exit 1; }
+
+echo 'test_package_contract: ok'

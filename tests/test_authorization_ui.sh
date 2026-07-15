@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-AUTH=htdocs/luci-static/resources/acmesh/authorization.js
+AUTH=htdocs/luci-static/resources/acmesh/authorization_v2.js
 OPS=htdocs/luci-static/resources/view/acmesh/operations_v2.js
 CERTS=htdocs/luci-static/resources/view/acmesh/certificates_v2.js
 PO=po/zh_Hans/acmesh-console.po

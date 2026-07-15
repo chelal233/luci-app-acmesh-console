@@ -29,13 +29,18 @@ start_service() {
 	ACMESH_AUTH_CHALLENGE_DIR="$ACMESH_RUNTIME_DIR/authorization-challenges"
 	export ACMESH_AUTH_CHALLENGE_DIR
 	. "$ACMESH_CONSOLE_LIB_DIR/authorization.sh" || return 1
+	for dir in "$ACMESH_RUNTIME_DIR" "$ACMESH_LOG_DIR"; do
+		if [ -d "$dir" ]; then
+			acmesh_task_private_dir_upgrade "$dir" || return 1
+		else
+			acmesh_private_dir "$dir" || return 1
+		fi
+	done
 	for dir in \
-		"$ACMESH_RUNTIME_DIR" \
 		"$ACMESH_RUNTIME_DIR/requests" \
 		"$ACMESH_RUNTIME_DIR/challenges" \
 		"$ACMESH_RUNTIME_DIR/authorization-challenges" \
-		"$ACMESH_RUNTIME_DIR/pending-import" \
-		"$ACMESH_LOG_DIR"; do
+		"$ACMESH_RUNTIME_DIR/pending-import"; do
 		acmesh_private_dir "$dir" || return 1
 	done
 	acmesh_task_private_dir_upgrade "$ACMESH_TASK_STATE_DIR" || return 1

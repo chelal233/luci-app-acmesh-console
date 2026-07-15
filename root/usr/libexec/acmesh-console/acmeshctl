@@ -1,7 +1,56 @@
 #!/bin/sh
 set -eu
 
-LIB_DIR="${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}"
+cli_private_request() {
+	cli_tmp="$(umask 077; mktemp "${TMPDIR:-/tmp}/acmesh-cli-request.XXXXXX")" || exit 1
+	chmod 600 "$cli_tmp" || { rm -f "$cli_tmp"; exit 1; }
+	trap 'rm -f "$cli_tmp"' HUP INT TERM EXIT
+}
+
+case "${1:-}" in
+	--acknowledge-risk|--remember-authorization)
+		cli_flag="$1" cli_challenge="${2:-}"
+		[ "$#" = 2 ] && printf '%s\n' "$cli_challenge" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$' || {
+			printf '{"ok":false,"error":"invalid authorization challenge"}\n'
+			exit 2
+		}
+		cli_private_request
+		cli_decision=once; [ "$cli_flag" = --acknowledge-risk ] || cli_decision=remember
+		printf '{"challengeId":"%s","decision":"%s"}\n' "$cli_challenge" "$cli_decision" > "$cli_tmp"
+		set +e
+		cli_output="$("$0" authorization-execute --request-file "$cli_tmp")"
+		cli_rc=$?
+		set -e
+		if [ -n "$cli_output" ]; then printf '%s\n' "$cli_output"; else printf '{"ok":false,"error":"authorization challenge unavailable"}\n'; fi
+		exit "$cli_rc"
+		;;
+esac
+
+if [ "${2:-}" = --request-stdin ]; then
+	[ "$#" = 2 ] || {
+		printf '{"ok":false,"error":"--request-stdin cannot be combined with request arguments"}\n'
+		exit 2
+	}
+	cli_command="$1"
+	shift 2
+	cli_private_request
+	cat > "$cli_tmp" || exit 1
+	"$0" "$cli_command" --request-file "$cli_tmp"
+	exit $?
+fi
+
+for cli_arg in "$@"; do
+	case "$cli_arg" in
+		--credential|--credential=*|--key-pem|--key-pem=*|--fullchain-pem|--fullchain-pem=*|--json|--json=*)
+			printf '{"ok":false,"error":"sensitive request arguments are unsupported; use --request-stdin"}\n'
+			exit 2
+			;;
+	esac
+done
+
+ACMESH_LIB_DIR="${ACMESH_LIB_DIR:-/usr/libexec/acmesh-console/lib}"
+export ACMESH_LIB_DIR
+LIB_DIR="$ACMESH_LIB_DIR"
 . "$LIB_DIR/cert.sh"
 . "$LIB_DIR/task.sh"
 . "$LIB_DIR/command.sh"
@@ -324,15 +373,14 @@ case "$cmd" in
 				--reloadcmd) reloadcmd="$2"; shift 2 ;;
 				--source-key-file) source_key_file="$2"; shift 2 ;;
 				--source-fullchain-file) source_fullchain_file="$2"; shift 2 ;;
-				--key-pem) key_pem="$2"; shift 2 ;;
-				--fullchain-pem) fullchain_pem="$2"; shift 2 ;;
 				--host) host="$2"; shift 2 ;;
 				--port) port="$2"; shift 2 ;;
 				--user) user="$2"; shift 2 ;;
 				--ssh-key) ssh_key="$2"; shift 2 ;;
 				*) shift ;;
 			esac
-		done
+			done
+		[ -z "$request_file" ] || load_deploy_request
 		acmesh_deploy_preview_json "$deploy_type" "$cert_source" "$domain" "$key_file" "$fullchain_file" "$cert_file" "$ca_file" "$reloadcmd" "$source_key_file" "$source_fullchain_file" "$key_pem" "$fullchain_pem" "$host" "$port" "$user" "$ssh_key" "$key_type"
 		;;
 	deploy-test)
@@ -367,8 +415,6 @@ case "$cmd" in
 				--reloadcmd) reloadcmd="$2"; shift 2 ;;
 				--source-key-file) source_key_file="$2"; shift 2 ;;
 				--source-fullchain-file) source_fullchain_file="$2"; shift 2 ;;
-				--key-pem) key_pem="$2"; shift 2 ;;
-				--fullchain-pem) fullchain_pem="$2"; shift 2 ;;
 				--host) host="$2"; shift 2 ;;
 				--port) port="$2"; shift 2 ;;
 				--user) user="$2"; shift 2 ;;
@@ -416,8 +462,6 @@ case "$cmd" in
 				--reloadcmd) reloadcmd="$2"; shift 2 ;;
 				--source-key-file) source_key_file="$2"; shift 2 ;;
 				--source-fullchain-file) source_fullchain_file="$2"; shift 2 ;;
-				--key-pem) key_pem="$2"; shift 2 ;;
-				--fullchain-pem) fullchain_pem="$2"; shift 2 ;;
 				--host) host="$2"; shift 2 ;;
 				--port) port="$2"; shift 2 ;;
 				--user) user="$2"; shift 2 ;;
@@ -442,25 +486,32 @@ case "$cmd" in
 		dns_api="dns_cf"
 		credentials=""
 		test_mode=false
+		profile_id=""
 		while [ "$#" -gt 0 ]; do
 			case "$1" in
 				--domain) main_domain="$2"; shift 2 ;;
 				--dns-api) dns_api="$2"; shift 2 ;;
-				--credential) credentials="${credentials}${credentials:+
-}$2"; shift 2 ;;
 				--test-mode) test_mode=1; shift ;;
 				--real-mode) test_mode=false; shift ;;
 				*) shift ;;
 			esac
 		done
 		if [ -n "$request_file" ]; then
+			profile_id="$(acmesh_request_value "$request_file" profileId '')"
 			main_domain="$(acmesh_request_value "$request_file" domain "$main_domain")"
 			dns_api="$(acmesh_request_value "$request_file" dnsApi "$dns_api")"
 			test_mode="$(acmesh_request_value "$request_file" testMode "$test_mode")"
 			credentials="$(acmesh_request_lines "$request_file" credentials)"
 		fi
-		credentials="$(acmesh_sanitize_credentials "$credentials")" || { printf '{"ok":false,"error":"invalid DNS credential payload"}\n'; exit 2; }
 		task_id="$(acmesh_task_create dns-test)"
+		if [ -n "$profile_id" ]; then
+			acmesh_profile_validate_id "$profile_id" || { printf '{"ok":false,"error":"invalid issue profile id"}\n'; exit 2; }
+			dns_workspace="$(acmesh_task_workspace "$task_id")"; dns_resolved="$dns_workspace/issue-profile.json"
+			acmesh_profile_resolve_issue "$profile_id" "$dns_resolved" && acmesh_profile_load_issue_file "$dns_resolved" || { rm -f "$dns_resolved"; exit 1; }
+			main_domain="$ACMESH_PROFILE_DOMAIN" dns_api="$ACMESH_PROFILE_DNS_API" credentials="$ACMESH_PROFILE_CREDENTIALS" test_mode="$ACMESH_PROFILE_TEST_MODE"
+			rm -f "$dns_resolved"
+		fi
+		credentials="$(acmesh_sanitize_credentials "$credentials")" || { printf '{"ok":false,"error":"invalid DNS credential payload"}\n'; exit 2; }
 		(
 			acmesh_task_run "$task_id" dns-test diagnostic acmesh_dns_test_log "$main_domain" "$dns_api" "$credentials" "$test_mode"
 		) &
@@ -490,14 +541,13 @@ case "$cmd" in
 				--ca) ca="$2"; shift 2 ;;
 				--webroot) webroot="$2"; shift 2 ;;
 				--listen-port) listen_port="$2"; shift 2 ;;
-				--credential) credentials="${credentials}${credentials:+
-}$2"; shift 2 ;;
 				--account-email) account_email="$2"; shift 2 ;;
 				--test-mode) test_mode=1; shift ;;
 				--real-mode) test_mode=false; shift ;;
 				*) shift ;;
 			esac
-		done
+			done
+		[ -z "$request_file" ] || load_issue_request
 		if [ "$test_mode" = 1 ] || [ "$test_mode" = true ]; then
 			command="$(acmesh_build_issue_command "$home" "$main_domain" "$key_type" "$validation_method" "$dns_api" "$webroot" "$listen_port" "$credentials" "$ca" "$account_email")"
 			printf '{"ok":true,"testMode":true,"command":"%s","note":"%s"}\n' \
@@ -530,8 +580,6 @@ case "$cmd" in
 				--ca) ca="$2"; shift 2 ;;
 				--webroot) webroot="$2"; shift 2 ;;
 				--listen-port) listen_port="$2"; shift 2 ;;
-				--credential) credentials="${credentials}${credentials:+
-}$2"; shift 2 ;;
 				--account-email) account_email="$2"; shift 2 ;;
 				--test-mode) test_mode=1; shift ;;
 				--real-mode) test_mode=false; shift ;;
