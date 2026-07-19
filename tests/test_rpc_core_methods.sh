@@ -41,6 +41,10 @@ case "\$cmd" in
 	*)
 		[ "\${1:-}" = --request-file ] && [ -f "\${2:-}" ] || exit 3
 		cat "\$2" > "$payloads/\$cmd.json"
+		if grep -F '"tag":"authorization-required"' "\$2" >/dev/null; then
+			printf '{"ok":false,"authorizationRequired":true,"challengeId":"challenge-1"}\n'
+			exit 3
+		fi
 		printf '{"ok":true,"testMode":true,"taskId":"20260712010101-123"}\n'
 		;;
 esac
@@ -89,6 +93,16 @@ case "$renew" in
 esac
 grep -F '"domain":"rpc-renew.example"' "$payloads/renew.json" >/dev/null || { echo "rpc renew did not preserve request payload"; exit 1; }
 ! grep -F 'rpc-renew.example' "$calls" >/dev/null || { echo "rpc renew leaked payload into argv"; exit 1; }
+
+authorization_id=33333333333333333333333333333333
+create_request "$authorization_id" '{"tag":"authorization-required","testMode":false}'
+authorization="$(sh "$ROOT/root/usr/libexec/acmesh-console/rpc-write" core_install --request-id "$authorization_id")"
+authorization_rc=$?
+[ "$authorization_rc" = 0 ] || { echo "rpc authorization response should be delivered to LuCI"; echo "$authorization"; exit 1; }
+case "$authorization" in
+	*'"ok":false'*'"authorizationRequired":true'*'"challengeId"'*) ;;
+	*) echo "rpc authorization response was lost"; echo "$authorization"; exit 1 ;;
+esac
 
 grep -F 'core-install --request-file ' "$calls" >/dev/null
 grep -F 'renew --request-file ' "$calls" >/dev/null

@@ -474,7 +474,7 @@ acmesh_core_tag_value() {
 
 acmesh_core_tag_url() {
 	tag="$(acmesh_core_tag_value "$1")" || return 1
-	printf 'https://github.com/acmesh-official/acme.sh/archive/refs/tags/%s.tar.gz\n' "$tag"
+	printf 'https://codeload.github.com/acmesh-official/acme.sh/tar.gz/refs/tags/%s\n' "${tag#v}"
 }
 
 acmesh_core_require_openssl() {
@@ -524,12 +524,15 @@ acmesh_execute_core_install() {
 		rollback_core; rm -rf "$backup_dir"; return 127
 	fi
 	if ! tar -xzf "$archive" -C "$workdir"; then rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; fi
-	src=""
-	for dir in "$workdir"/acme.sh-*; do
-		[ -d "$dir" ] || continue
-		src="$dir"
-		break
-	done
+	src="$workdir/acme.sh-${tag#v}"
+	if [ ! -d "$src" ]; then
+		src=""
+		for dir in "$workdir"/acme.sh-*; do
+			[ -d "$dir" ] || continue
+			src="$dir"
+			break
+		done
+	fi
 	[ -n "$src" ] && [ -x "$src/acme.sh" ] && "$src/acme.sh" --version >/dev/null 2>&1 || { echo "unusable official tag archive" >&2; rollback_core; rm -rf "$workdir" "$backup_dir"; return 1; }
 	(
 		cd "$src"

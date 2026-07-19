@@ -37,11 +37,11 @@ esac
 case "$out" in *'"taskId"'*) echo "core upgrade test mode created task"; exit 1;; esac
 [ ! -e "$ACMESH_TASK_STATE_DIR" ] && [ ! -e "$ACMESH_TASK_LOG_DIR" ]
 case "$out" in
-	*"https://github.com/acmesh-official/acme.sh/archive/refs/tags/v3.1.4.tar.gz"*) ;;
+	*"https://codeload.github.com/acmesh-official/acme.sh/tar.gz/refs/tags/3.1.4"*) ;;
 	*) echo "core upgrade preview is wrong"; echo "$out"; exit 1 ;;
 esac
 case "$out" in
-	*" --upgrade"*|*"master.tar.gz"*)
+	*" --upgrade"*|*"master.tar.gz"*|*"archive/refs/tags"*|*"v3.1.4.tar.gz"*)
 		echo "core upgrade should use explicit tag archive"
 		echo "$out"
 		exit 1

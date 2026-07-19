@@ -16,7 +16,7 @@ esac
 case "$out" in *'"taskId"'*) echo "core install test mode created task"; exit 1;; esac
 [ ! -e "$ACMESH_TASK_STATE_DIR" ] && [ ! -e "$ACMESH_TASK_LOG_DIR" ]
 case "$out" in
-	*"https://github.com/acmesh-official/acme.sh/archive/refs/tags/v3.1.4.tar.gz"*"--install"*"admin@example.com"*) ;;
+	*"https://codeload.github.com/acmesh-official/acme.sh/tar.gz/refs/tags/3.1.4"*"--install"*"admin@example.com"*) ;;
 	*) echo "core install preview is wrong"; echo "$out"; exit 1 ;;
 esac
 case "$out" in
@@ -24,7 +24,7 @@ case "$out" in
 	*) echo "core install command should pin acme.sh home"; echo "$out"; exit 1 ;;
 esac
 case "$out" in
-	*"get.acme.sh"*|*"master.tar.gz"*)
+	*"get.acme.sh"*|*"master.tar.gz"*|*"archive/refs/tags"*|*"v3.1.4.tar.gz"*)
 		echo "core install should use an explicit tag, not get.acme.sh/master"
 		echo "$out"
 		exit 1

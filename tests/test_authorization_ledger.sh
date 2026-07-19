@@ -41,6 +41,7 @@ acmesh_auth_execute "$id" remember >/dev/null
 [ "$(jsonfilter -i "$TMP/state/authorizations.json" -e '@.records[0].useCount')" = 1 ]
 acmesh_auth_prepare issue issueProfile issue-1 "$TMP/material/current" "$TMP/material/summary" | grep -F '"remembered":true' >/dev/null
 [ "$(jsonfilter -i "$TMP/state/authorizations.json" -e '@.records[0].useCount')" = 2 ]
+tail -n 1 "$TMP/admitted" | grep -Fx 'issue-1:remembered' >/dev/null || { echo "remembered authorization clobbered admission identity"; exit 1; }
 
 # A canonical snapshot cannot be admitted under a different caller-supplied subject.
 before_admissions="$(wc -l < "$TMP/admitted" | tr -d ' ')"

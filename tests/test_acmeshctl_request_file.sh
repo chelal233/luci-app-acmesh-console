@@ -132,7 +132,7 @@ cat > "$core_request" <<EOF
 EOF
 core_out="$(sh "$CTL" core-install --request-file "$core_request")"
 case "$core_out" in *'"ok":true'*'"testMode":true'*'"command"'*) ;; *) echo "request-file core-install failed"; echo "$core_out"; exit 1 ;; esac
-for needle in "$TMP/core-home" 'refs/tags/v3.1.3.tar.gz' 'core-request@example.org'; do
+for needle in "$TMP/core-home" 'codeload.github.com/acmesh-official/acme.sh/tar.gz/refs/tags/3.1.3' 'core-request@example.org'; do
 	printf '%s' "$core_out" | grep -F "$needle" >/dev/null || { echo "request-file core-install ignored $needle"; echo "$core_out"; exit 1; }
 done
 case "$core_out" in *'taskId'*) echo "core test mode created a task"; exit 1 ;; esac

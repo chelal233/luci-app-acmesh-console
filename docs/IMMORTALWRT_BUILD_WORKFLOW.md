@@ -11,11 +11,12 @@
 - Windows 仓库：`E:\git\lua-app-acme`
 - 现有配置仓库：`E:\git\ImmortalWrt-ImageBuilder`
 - WSL：Ubuntu 26.04，普通用户 `pc`
-- ImmortalWrt：`25.12.0`
+- ImmortalWrt：`25.12.1`
 - 目标：`x86/64`
 - 文件系统：`ext4`
 - 根分区：`300 MiB`
 - 测试路由器：`10.0.0.227`，`root`，空密码
+- 后续 x86-64 25.12 固件的默认 LAN 管理地址：`10.0.0.1`
 
 > 所有构建目录必须放在 WSL 的 ext4 文件系统（例如 `/home/pc`），不要放在 `/mnt/c` 或 `/mnt/e`。Windows 仓库只作为只读源码输入和最终产物输出。
 
@@ -27,7 +28,7 @@
 | 生成带插件的固件 | 官方 SDK + ImageBuilder | 最稳定、最快、推荐的日常固件路线 |
 | 修改内核或基础系统 | 完整 ImmortalWrt 源码树 | 内核补丁、目标平台或基础包需要重编 |
 
-不要混用不同版本、不同 target 或不同内核 ABI 的 SDK、ImageBuilder、APK 和 kmod。`25.12.0/x86/64` 的产物只能进入同一基线。
+不要混用不同版本、不同 target 或不同内核 ABI 的 SDK、ImageBuilder、APK 和 kmod。`25.12.1/x86/64` 的产物只能进入同一基线。
 
 ## 2. WSL 一次性准备
 
@@ -81,10 +82,10 @@ set -eu
 set -o pipefail
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-VERSION=25.12.0
+VERSION=25.12.1
 TARGET=x86/64
 TARGET_DIR=x86/64
-ROOTFS_PARTSIZE=300
+ROOTFS_PARTSIZE=1024
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 RUN_ROOT="$HOME/immortalwrt-build/$RUN_ID"
 DOWNLOADS="$RUN_ROOT/downloads"
@@ -97,10 +98,10 @@ WINDOWS_IMAGE_CONFIG=/mnt/e/git/ImmortalWrt-ImageBuilder
 WINDOWS_OUTPUT=/mnt/e/acmesh-build-output/$RUN_ID
 
 BASE_URL="https://downloads.immortalwrt.org/releases/$VERSION/targets/$TARGET_DIR"
-SDK_ARCHIVE="immortalwrt-sdk-25.12.0-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
-IB_ARCHIVE="immortalwrt-imagebuilder-25.12.0-x86-64.Linux-x86_64.tar.zst"
-SDK_SHA256=c228059aa1e58c3b3ae58ce8dcc7549fd08379d8e231daf80fcca15b677564cb
-IB_SHA256=c6c112f79c235300441aeeea113cfab3809e1b55c1b91b38c4b51b927cc5fe66
+SDK_ARCHIVE="immortalwrt-sdk-25.12.1-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+IB_ARCHIVE="immortalwrt-imagebuilder-25.12.1-x86-64.Linux-x86_64.tar.zst"
+SDK_SHA256=02ad8cfc775001ccae8e9282d19696de54e3ab3963f005737ad61f8698263edd
+IB_SHA256=637c8d1cd5f3b1959eb42a0c8bb2e791687080b022a8315784e8f9b8b5238157
 
 mkdir -p "$DOWNLOADS" "$WORK" "$LOGS" "$ARTIFACTS" "$WINDOWS_OUTPUT"
 git -C "$WINDOWS_APP" rev-parse HEAD | tee "$LOGS/lua-app-acme-commit.txt"
@@ -147,6 +148,7 @@ rsync -a --delete \
   --exclude=.git --exclude=.agents --exclude=.codex \
   "$WINDOWS_APP/" "$APP_DST/"
 
+./scripts/feeds update luci 2>&1 | tee "$LOGS/sdk-luci-index-update.log"
 ./scripts/feeds install -a 2>&1 | tee "$LOGS/sdk-feeds-install.log"
 ```
 
@@ -261,9 +263,8 @@ cp -a "$APK" "$I18N_APK" "$ARTIFACTS/"
 
 当前 `E:\git\ImmortalWrt-ImageBuilder\shell\apk-custom-packages.sh` 启用的组合是：
 
-- `luci-app-partexp` 和中文包；
 - `geoview`、`xray-core`、`sing-box`、`hysteria`；
-- `luci-app-passwall2` 和中文包；
+- `luci-app-passwall` 和中文包；
 - `kmod-nft-socket`、`kmod-nft-tproxy`；
 - `luci-i18n-wol-zh-cn`。
 
@@ -290,8 +291,7 @@ cp -a "$APK" "$I18N_APK" packages/
 
 for pattern in \
   'luci-app-acmesh-console-*.apk' \
-  'luci-app-partexp-*.apk' \
-  'luci-app-passwall2-*.apk' \
+  'luci-app-passwall-*.apk' \
   'geoview-*.apk' 'xray-core-*.apk' 'sing-box-*.apk' 'hysteria-*.apk'
 do
   find packages -maxdepth 1 -name "$pattern" -print -quit | grep . >/dev/null || {
@@ -307,15 +307,21 @@ done
 
 ### 7.1 定义包列表
 
-下面的列表与本次验证通过的 25.12.0 镜像一致：
+下面的列表用于 25.12.1 完整镜像。该集合保留 Passwall、多个代理核心、
+DDNS-Go、PPPoE 和现有硬件驱动，根分区保持 `ROOTFS_PARTSIZE=1024`。
+Docker、partexp、ttyd 和 SQM 明确不进入镜像；`shellsync` 是 `ppp` 的硬依赖，
+为保证 PPPoE 拨号必须保留：
 
 ```sh
 PACKAGES="luci-app-acmesh-console luci-i18n-acmesh-console-zh-cn curl \
 luci-i18n-firewall-zh-cn luci-theme-argon luci-app-argon-config \
 luci-i18n-argon-config-zh-cn luci-i18n-package-manager-zh-cn \
-luci-i18n-ttyd-zh-cn irqbalance luci-i18n-irqbalance-zh-cn \
+irqbalance luci-i18n-irqbalance-zh-cn \
 e2fsprogs luci-app-wol luci-i18n-wol-zh-cn iftop tcpdump \
-luci-app-attendedsysupgrade luci-i18n-attendedsysupgrade-zh-cn \
+luci-ssl smartmontools \
+luci-app-nlbwmon luci-i18n-nlbwmon-zh-cn \
+luci-app-watchcat luci-i18n-watchcat-zh-cn \
+luci-app-banip luci-i18n-banip-zh-cn \
 kmod-tcp-bbr kmod-nft-offload bash ethtool lm-sensors resize2fs \
 ddns-go luci-app-ddns-go luci-i18n-ddns-go-zh-cn \
 kmod-button-hotplug kmod-e1000e kmod-fs-f2fs kmod-i40e kmod-igb \
@@ -323,10 +329,21 @@ kmod-igbvf kmod-igc kmod-ixgbe kmod-ixgbevf kmod-r8101 kmod-r8125 \
 kmod-r8126 kmod-r8168 kmod-usb-hid kmod-usb-net kmod-usb-net-asix \
 kmod-usb-net-asix-ax88179 kmod-usb-net-rtl8150 \
 kmod-usb-net-rtl8152-vendor kmod-fs-vfat kmod-tg3 kmod-tun kmod-vmxnet3 \
-luci-app-partexp luci-i18n-partexp-zh-cn geoview xray-core sing-box \
-hysteria kmod-nft-socket kmod-nft-tproxy luci-app-passwall2 \
-luci-i18n-passwall2-zh-cn"
+geoview xray-core sing-box \
+hysteria kmod-nft-socket kmod-nft-tproxy luci-app-passwall \
+luci-i18n-passwall-zh-cn \
+-luci-app-attendedsysupgrade -luci-i18n-attendedsysupgrade-zh-cn \
+-attendedsysupgrade-common -owut \
+-docker -docker-compose -dockerd -luci-app-dockerman \
+-luci-i18n-dockerman-zh-cn -luci-app-partexp \
+-luci-i18n-partexp-zh-cn -luci-app-ttyd \
+-luci-i18n-ttyd-zh-cn -luci-app-sqm -luci-i18n-sqm-zh-cn"
 ```
+
+本仓库的固件始终包含官方仓库外的本地 APK，因此固件升级固定使用本地重建镜像并
+通过 LuCI“备份/升级”上传。负包选择用于防止 ImageBuilder 默认包重新引入
+Attended Sysupgrade/owut 以及明确排除的 Docker、partexp、ttyd、SQM；
+普通软件包仍可通过 LuCI 软件包管理器或 `apk` 更新。
 
 ### 7.2 可选复制自定义 files overlay
 
@@ -356,12 +373,23 @@ make manifest PROFILE=generic PACKAGES="$PACKAGES" \
 
 for package in \
   luci-app-acmesh-console luci-i18n-acmesh-console-zh-cn \
-  luci-app-partexp luci-app-passwall2 hysteria sing-box xray-core
+  luci-app-passwall hysteria sing-box xray-core \
+  ddns-go luci-app-ddns-go
 do
   grep -E "^${package}[[:space:]]" "$LOGS/imagebuilder-manifest.log" >/dev/null || {
     echo "ERROR: package missing from manifest: $package" >&2
     exit 1
   }
+done
+
+for package in \
+  docker docker-compose dockerd luci-app-dockerman \
+  luci-app-partexp luci-app-ttyd
+do
+  if grep -E "^${package}[[:space:]]" "$LOGS/imagebuilder-manifest.log" >/dev/null; then
+    echo "ERROR: excluded package present in manifest: $package" >&2
+    exit 1
+  fi
 done
 
 make image PROFILE=generic PACKAGES="$PACKAGES" \
@@ -391,7 +419,7 @@ BIOS_IMAGE="immortalwrt-$VERSION-x86-64-generic-ext4-combined.img.gz"
 gzip -t "$EFI_IMAGE"
 gzip -t "$BIOS_IMAGE"
 
-grep -E '^(luci-app-acmesh-console|luci-app-partexp|luci-app-passwall2|hysteria|sing-box|xray-core) ' \
+grep -E '^(luci-app-acmesh-console|luci-app-passwall|ddns-go|hysteria|sing-box|xray-core) ' \
   "immortalwrt-$VERSION-x86-64-generic.manifest"
 
 cp -a . "$ARTIFACTS/imagebuilder-target/"
@@ -530,7 +558,7 @@ ssh -o StrictHostKeyChecking=yes \
   df -h /
   apk info -e \
     luci-app-acmesh-console luci-i18n-acmesh-console-zh-cn \
-    luci-app-partexp luci-app-passwall2 hysteria sing-box xray-core
+    luci-app-passwall ddns-go luci-app-ddns-go hysteria sing-box xray-core
   ls -l \
     /usr/libexec/acmesh-console/acmeshctl \
     /usr/libexec/acmesh-console/rpc-read \
@@ -548,7 +576,61 @@ ssh -o StrictHostKeyChecking=yes \
 - **日志**页面能显示任务；
 - 浏览器控制台没有 `PermissionError`、404、JavaScript error 或 warning。
 
-## 12. 在可破坏测试路由器刷写镜像
+## 12. 在真实主路由保留配置升级
+
+真实主路由使用 ext4 EFI 镜像，升级命令不得带 `-n`。本完整镜像的根分区为
+1024 MiB；升级前先确认系统盘有足够空间，并把配置备份下载到本机：
+
+```sh
+set -eu
+set -o pipefail
+ROUTER=10.0.0.1
+IMAGE="$IMAGEBUILDER/bin/targets/x86/64/immortalwrt-$VERSION-x86-64-generic-ext4-combined-efi.img.gz"
+BACKUP_DIR="$ARTIFACTS/router-backup-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+
+test -s "$IMAGE"
+gzip -t "$IMAGE"
+sha256sum "$IMAGE"
+
+ssh -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" root@$ROUTER '
+  set -e
+  ubus call system board
+  block info
+  df -h
+  apk list --installed > /tmp/packages-before-25.12.1.txt
+  sysupgrade -b /tmp/backup-before-25.12.1.tar.gz
+'
+
+scp -O -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" \
+  root@$ROUTER:/tmp/backup-before-25.12.1.tar.gz "$BACKUP_DIR/"
+scp -O -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" \
+  root@$ROUTER:/tmp/packages-before-25.12.1.txt "$BACKUP_DIR/"
+scp -O -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" \
+  "$IMAGE" root@$ROUTER:/tmp/firmware-25.12.1.img.gz
+
+LOCAL_SHA="$(sha256sum "$IMAGE" | awk '{print $1}')"
+REMOTE_SHA="$(ssh -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" root@$ROUTER \
+  'sha256sum /tmp/firmware-25.12.1.img.gz' | awk '{print $1}')"
+test "$LOCAL_SHA" = "$REMOTE_SHA"
+
+ssh -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$ROUTER_KNOWN_HOSTS" root@$ROUTER \
+  'sysupgrade -T /tmp/firmware-25.12.1.img.gz'
+
+echo '兼容性检查已通过。确认备份已下载、设备和镜像路径无误后，单独执行：'
+echo "ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ROUTER_KNOWN_HOSTS root@$ROUTER 'sysupgrade /tmp/firmware-25.12.1.img.gz'"
+```
+
+最后一条命令保留 `/etc/config` 等 sysupgrade 配置。不要使用 `-n`，也不要把
+真实主路由的升级命令与前面的检查命令串成自动执行链。
+
+## 13. 在可破坏测试路由器刷写镜像
 
 下面是破坏性操作，会清除现有系统。只用于已确认可重建的测试虚拟机：
 
@@ -577,11 +659,11 @@ echo "ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ROUTER_KNOWN_HOSTS
 
 刷写命令故意不与校验命令放在同一条链中，避免路径或设备选错时立即破坏系统。
 
-## 13. 从源码完整编译 ImmortalWrt
+## 14. 从源码完整编译 ImmortalWrt
 
 只有需要重编内核、基础系统或修改 target 时才使用本路线。预留至少 50 GiB 空间。
 
-### 13.1 建立固定版本源码树
+### 14.1 建立固定版本源码树
 
 ```sh
 set -eu
@@ -594,7 +676,7 @@ SOURCE="$FULL_ROOT/immortalwrt"
 FULL_LOGS="$FULL_ROOT/logs"
 mkdir -p "$FULL_ROOT" "$FULL_LOGS"
 
-git clone --branch v25.12.0 --single-branch --filter=blob:none \
+git clone --branch v25.12.1 --single-branch --filter=blob:none \
   https://github.com/immortalwrt/immortalwrt.git "$SOURCE"
 cd "$SOURCE"
 git rev-parse HEAD | tee "$FULL_LOGS/source-commit.txt"
@@ -607,10 +689,11 @@ rsync -a --delete \
   --exclude=.git --exclude=.agents --exclude=.codex \
   /mnt/e/git/lua-app-acme/ "$APP_DST/"
 
+./scripts/feeds update luci 2>&1 | tee "$FULL_LOGS/luci-index-update.log"
 ./scripts/feeds install -a 2>&1 | tee "$FULL_LOGS/feeds-install.log"
 ```
 
-### 13.2 使用现有 x86-64 配置
+### 14.2 使用现有 x86-64 配置
 
 ```sh
 set -eu
@@ -630,7 +713,7 @@ make defconfig
 grep -qx 'CONFIG_TARGET_x86=y' .config
 grep -qx 'CONFIG_TARGET_x86_64=y' .config
 grep -qx 'CONFIG_TARGET_ROOTFS_EXT4FS=y' .config
-grep -qx 'CONFIG_TARGET_ROOTFS_PARTSIZE=300' .config
+grep -qx 'CONFIG_TARGET_ROOTFS_PARTSIZE=1024' .config
 grep -qx 'CONFIG_PACKAGE_luci-app-acmesh-console=y' .config
 grep -qx 'CONFIG_PACKAGE_luci-i18n-acmesh-console-zh-cn=y' .config
 ```
@@ -649,7 +732,7 @@ make menuconfig
 - Root filesystem partition size：`300 MiB` 或更大；
 - `luci-app-acmesh-console` 与中文包已选中。
 
-### 13.3 下载和编译
+### 14.3 下载和编译
 
 ```sh
 set -eu
@@ -669,7 +752,7 @@ if ! make -j"$(nproc)" 2>&1 | tee "$FULL_LOGS/build-parallel.log"; then
 fi
 
 cd bin/targets/x86/64
-IMAGE=immortalwrt-25.12.0-x86-64-generic-ext4-combined-efi.img.gz
+IMAGE=immortalwrt-25.12.1-x86-64-generic-ext4-combined-efi.img.gz
 test -s "$IMAGE"
 sha256sum -c sha256sums
 grep -F " $IMAGE" sha256sums >/dev/null
@@ -719,7 +802,7 @@ scp -O -o StrictHostKeyChecking=yes \
 
 ```sh
 ls -1 "$IMAGEBUILDER/packages"
-grep -E 'luci-app-(acmesh-console|partexp|passwall2)' "$LOGS/imagebuilder-manifest.log"
+grep -E '^(luci-app-(acmesh-console|passwall)|ddns-go) ' "$LOGS/imagebuilder-manifest.log"
 ```
 
 本地 APK 必须与 ImageBuilder 的版本、架构和 kernel ABI 匹配。
@@ -745,7 +828,8 @@ ps -eo pid,ppid,pgid,etime,args \
 - [ ] SDK 使用 clean、`-j1` 完整编译；
 - [ ] APK 解包权限审计无 `0777`；
 - [ ] 入口为 `0755`，库文件为 `0644`；
-- [ ] ImageBuilder manifest 包含 console、partexp、passwall2 和代理核心；
+- [ ] ImageBuilder manifest 包含 console、DDNS-Go、passwall 和代理核心；
+- [ ] ImageBuilder manifest 不含 Docker、partexp、ttyd、SQM，并保留 PPPoE 与 shellsync；
 - [ ] `sha256sum -c sha256sums` 和 `gzip -t` 通过；
 - [ ] 从虚拟机控制台核对并固定了路由器 ed25519 主机密钥；
 - [ ] 路由器完整测试以 `all host tests passed` 结束；
@@ -757,6 +841,6 @@ ps -eo pid,ppid,pgid,etime,args \
 
 ## 16. 权威来源
 
-- ImmortalWrt 下载目录：<https://downloads.immortalwrt.org/releases/25.12.0/targets/x86/64/>
+- ImmortalWrt 下载目录：<https://downloads.immortalwrt.org/releases/25.12.1/targets/x86/64/>
 - ImmortalWrt 源码：<https://github.com/immortalwrt/immortalwrt>
 - ACME 行为唯一权威：<https://github.com/acmesh-official/acme.sh>

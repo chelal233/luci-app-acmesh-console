@@ -60,4 +60,20 @@ request_file="$(acmesh_request_consume "$request_id")" || {
 }
 trap 'rm -f "$request_file"' HUP INT TERM EXIT
 
-"$ACMESHCTL" "$command" --request-file "$request_file"
+# acmeshctl uses non-zero status codes for structured application responses
+# such as an authorization challenge. LuCI fs.exec_direct() treats every
+# non-zero status as a rejected promise and would discard that JSON before the
+# view can display the challenge or a validation error. Keep transport errors
+# above as failures, but deliver trusted acmeshctl JSON as a successful RPC
+# response.
+set +e
+response="$("$ACMESHCTL" "$command" --request-file "$request_file")"
+rc=$?
+set -e
+if [ -n "$response" ]; then
+	printf '%s\n' "$response"
+	case "$response" in
+		\{*'"ok":'*\}) exit 0 ;;
+	esac
+fi
+exit "$rc"

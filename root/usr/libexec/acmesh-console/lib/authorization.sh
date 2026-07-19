@@ -379,28 +379,28 @@ acmesh_auth_emit_record() {
 }
 
 acmesh_auth_rewrite_locked() {
-	mode="$1" needle="${2-}" operation="${3-}" subject_type="${4-}" subject_id="${5-}" fingerprint="${6-}" now="${7-}"
-	instance_id="$(acmesh_auth_instance_id)" || return 1
+	auth_rewrite_mode="$1" auth_rewrite_needle="${2-}" auth_rewrite_operation="${3-}" auth_rewrite_subject_type="${4-}" auth_rewrite_subject_id="${5-}" auth_rewrite_fingerprint="${6-}" auth_rewrite_now="${7-}"
+	auth_rewrite_instance_id="$(acmesh_auth_instance_id)" || return 1
 	{
-		printf '{"schemaVersion":%s,"instanceId":"%s","ackVersion":%s,"records":[' "$ACMESH_AUTH_LEDGER_SCHEMA" "$(acmesh_json_escape "$instance_id")" "$ACMESH_AUTH_ACK_VERSION"
-		i=0 first=1 found=0
-		while [ "$(acmesh_auth_json_type "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i]")" = object ]; do
-			rid="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].id")"; rfp="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].fingerprint")"
-			keep=1; [ "$mode" = all ] && keep=0; [ "$mode" = revoke ] && [ "$rid" = "$needle" ] && keep=0
-			if [ "$mode" = upsert ] && [ "$rfp" = "$fingerprint" ]; then keep=0; found=1; fi
-			if [ "$mode" = reuse ] && [ "$rfp" = "$fingerprint" ]; then
-				[ "$first" = 1 ] || printf ','; first=0
-				count="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].useCount")"; count=$((count + 1))
+		printf '{"schemaVersion":%s,"instanceId":"%s","ackVersion":%s,"records":[' "$ACMESH_AUTH_LEDGER_SCHEMA" "$(acmesh_json_escape "$auth_rewrite_instance_id")" "$ACMESH_AUTH_ACK_VERSION"
+		auth_rewrite_i=0 auth_rewrite_first=1 auth_rewrite_found=0
+		while [ "$(acmesh_auth_json_type "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i]")" = object ]; do
+			auth_rewrite_id="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].id")"; auth_rewrite_record_fingerprint="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].fingerprint")"
+			auth_rewrite_keep=1; [ "$auth_rewrite_mode" = all ] && auth_rewrite_keep=0; [ "$auth_rewrite_mode" = revoke ] && [ "$auth_rewrite_id" = "$auth_rewrite_needle" ] && auth_rewrite_keep=0
+			if [ "$auth_rewrite_mode" = upsert ] && [ "$auth_rewrite_record_fingerprint" = "$auth_rewrite_fingerprint" ]; then auth_rewrite_keep=0; auth_rewrite_found=1; fi
+			if [ "$auth_rewrite_mode" = reuse ] && [ "$auth_rewrite_record_fingerprint" = "$auth_rewrite_fingerprint" ]; then
+				[ "$auth_rewrite_first" = 1 ] || printf ','; auth_rewrite_first=0
+				auth_rewrite_count="$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].useCount")"; auth_rewrite_count=$((auth_rewrite_count + 1))
 				printf '{"id":"%s","operation":"%s","subjectType":"%s","subjectId":"%s","fingerprint":"%s","grantedAt":"%s","lastUsedAt":"%s","useCount":%s,"ackVersion":%s}' \
-					"$(acmesh_json_escape "$rid")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].operation")")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].subjectType")")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].subjectId")")" "$(acmesh_json_escape "$rfp")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$i].grantedAt")")" "$now" "$count" "$ACMESH_AUTH_ACK_VERSION"
-				found=1; keep=0
+					"$(acmesh_json_escape "$auth_rewrite_id")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].operation")")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].subjectType")")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].subjectId")")" "$(acmesh_json_escape "$auth_rewrite_record_fingerprint")" "$(acmesh_json_escape "$(acmesh_auth_json_get "$ACMESH_AUTH_LEDGER_FILE" "@.records[$auth_rewrite_i].grantedAt")")" "$auth_rewrite_now" "$auth_rewrite_count" "$ACMESH_AUTH_ACK_VERSION"
+				auth_rewrite_found=1; auth_rewrite_keep=0
 			fi
-			if [ "$keep" = 1 ]; then [ "$first" = 1 ] || printf ','; first=0; acmesh_auth_emit_record "$ACMESH_AUTH_LEDGER_FILE" "$i"; fi
-			i=$((i + 1))
+			if [ "$auth_rewrite_keep" = 1 ]; then [ "$auth_rewrite_first" = 1 ] || printf ','; auth_rewrite_first=0; acmesh_auth_emit_record "$ACMESH_AUTH_LEDGER_FILE" "$auth_rewrite_i"; fi
+			auth_rewrite_i=$((auth_rewrite_i + 1))
 		done
-		if [ "$mode" = upsert ]; then [ "$first" = 1 ] || printf ','; rid="$(acmesh_auth_random_id)"; printf '{"id":"%s","operation":"%s","subjectType":"%s","subjectId":"%s","fingerprint":"%s","grantedAt":"%s","lastUsedAt":"%s","useCount":1,"ackVersion":%s}' "$rid" "$(acmesh_json_escape "$operation")" "$(acmesh_json_escape "$subject_type")" "$(acmesh_json_escape "$subject_id")" "$fingerprint" "$now" "$now" "$ACMESH_AUTH_ACK_VERSION"; found=1; fi
+		if [ "$auth_rewrite_mode" = upsert ]; then [ "$auth_rewrite_first" = 1 ] || printf ','; auth_rewrite_id="$(acmesh_auth_random_id)"; printf '{"id":"%s","operation":"%s","subjectType":"%s","subjectId":"%s","fingerprint":"%s","grantedAt":"%s","lastUsedAt":"%s","useCount":1,"ackVersion":%s}' "$auth_rewrite_id" "$(acmesh_json_escape "$auth_rewrite_operation")" "$(acmesh_json_escape "$auth_rewrite_subject_type")" "$(acmesh_json_escape "$auth_rewrite_subject_id")" "$auth_rewrite_fingerprint" "$auth_rewrite_now" "$auth_rewrite_now" "$ACMESH_AUTH_ACK_VERSION"; auth_rewrite_found=1; fi
 		printf ']}\n'
-		[ "$mode" != reuse ] || [ "$found" = 1 ]
+		[ "$auth_rewrite_mode" != reuse ] || [ "$auth_rewrite_found" = 1 ]
 	} | acmesh_atomic_write "$ACMESH_AUTH_LEDGER_FILE" 600
 }
 

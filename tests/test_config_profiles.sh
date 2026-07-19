@@ -134,7 +134,7 @@ case "$core_out" in
 	*) echo "core-install should inherit global testMode"; echo "$core_out"; exit 1 ;;
 esac
 case "$core_out" in
-	*"refs/tags/v3.1.4.tar.gz"*"ops@example.com"*) ;;
+	*"codeload.github.com/acmesh-official/acme.sh/tar.gz/refs/tags/3.1.4"*"ops@example.com"*) ;;
 	*) echo "core-install did not use global default email/tag"; echo "$core_out"; exit 1 ;;
 esac
 

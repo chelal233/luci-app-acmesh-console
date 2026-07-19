@@ -100,9 +100,13 @@ return view.extend({
 
 		const saveConfig = function() {
 			return acmeshApi.write('config_save', config).then(function(res) {
-				if (!res.ok)
-					ui.addNotification(null, E('p', {}, res.error || _('Unable to save config')), 'danger');
+				if (!res || !res.ok)
+					ui.addNotification(null, E('p', {}, res && res.error || _('Unable to save config')), 'danger');
 				return res;
+			}, function(error) {
+				const message = error && error.message ? error.message : _('Unable to save config');
+				ui.addNotification(null, E('p', {}, message), 'danger');
+				return { ok: false, error: message };
 			});
 		};
 
@@ -237,6 +241,23 @@ return view.extend({
 			};
 		};
 
+		const runCoreAction = function(method, email, testMode, acmeHome, tagList) {
+			taskBox.textContent = _('Saving defaults') + '...';
+			return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
+				if (!res || !res.ok) {
+					taskBox.textContent = res && res.error || _('Unable to save config');
+					return res;
+				}
+				taskBox.textContent = _('Creating task') + '...';
+				return authorization.run(method, coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
+			}).then(null, function(error) {
+				const message = error && error.message ? error.message : _('Unable to create task');
+				taskBox.textContent = message;
+				ui.addNotification(null, E('p', {}, message), 'danger');
+				return { ok: false, error: message };
+			});
+		};
+
 		const renewCertificate = function(cert) {
 			taskBox.textContent = _('Creating task') + '...';
 			return authorization.run('renew', {
@@ -295,18 +316,10 @@ return view.extend({
 							});
 						}) }, _('Save defaults')),
 						E('button', { 'class': 'btn cbi-button cbi-button-apply', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
-								if (!res.ok)
-									return res;
-								return authorization.run('core_install', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
-							});
+							return runCoreAction('core_install', email, testMode, acmeHome, tagList);
 						}) }, _('Install selected tag')),
 						E('button', { 'class': 'btn cbi-button cbi-button-neutral', 'click': ui.createHandlerFn(this, function() {
-							return saveCoreDefaults(email, acmeHome, tagList).then(function(res) {
-								if (!res.ok)
-									return res;
-								return authorization.run('core_upgrade', coreTaskPayload(email, testMode, acmeHome, tagList)).then(showTask);
-							});
+							return runCoreAction('core_upgrade', email, testMode, acmeHome, tagList);
 						}) }, _('Upgrade selected tag'))
 					])
 				])

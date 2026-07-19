@@ -35,6 +35,7 @@ require_text "deployProfileSelect"
 require_text "deployCertificateWithProfile"
 require_text "prepareDeploy"
 require_text "saveCoreDefaults"
+require_text "runCoreAction"
 require_text "Save defaults"
 require_text "Test this core action"
 reject_text "Global Test Mode"
@@ -59,8 +60,11 @@ require_text "border-bottom:1px solid rgba(127,127,127,.24)"
 require_text "coreTaskPayload"
 require_text "acmeshApi.write('config_save'"
 require_text "L.resolveDefault(acmeshApi.write('config_get', {}), {})"
-require_text "authorization.run('core_install'"
-require_text "authorization.run('core_upgrade'"
+require_text "authorization.run(method, coreTaskPayload"
+require_text "taskBox.textContent = _('Saving defaults') + '...'"
+require_text "taskBox.textContent = _('Creating task') + '...'"
+require_text "return runCoreAction('core_install'"
+require_text "return runCoreAction('core_upgrade'"
 
 if ! grep -Fq -- '"path": "acmesh/certificates_v2"' "$MENU"; then
 	echo "certificates menu still points at old view module"
@@ -83,15 +87,5 @@ reject_text "border-bottom:1px solid #e2e7ef"
 reject_text "display:block; margin-top:5px"
 reject_text "'deploy-test', '--domain'"
 reject_text "'/etc/ssl/' + (cert.mainDomain || 'example')"
-
-install_line="$(grep -n "authorization.run('core_install'" "$PAGE" | cut -d: -f1)"
-upgrade_line="$(grep -n "authorization.run('core_upgrade'" "$PAGE" | cut -d: -f1)"
-for line in "$install_line" "$upgrade_line"; do
-	start=$((line - 4))
-	sed -n "${start},${line}p" "$PAGE" | grep -F "if (!res.ok)" >/dev/null || {
-		echo "core action does not stop after saveConfig failure near line $line"
-		exit 1
-	}
-done
 
 echo "test_certificates_list_detail_ui: ok"
