@@ -39,4 +39,4 @@ define Package/luci-app-acmesh-console/conffiles
 /etc/acmesh-console/ssh/known_hosts
 endef
 
-include ../../luci.mk
+include $(TOPDIR)/feeds/luci/luci.mk
