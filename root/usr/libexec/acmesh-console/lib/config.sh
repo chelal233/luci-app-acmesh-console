@@ -57,7 +57,7 @@ acmesh_config_redact_file() (
 	for index in $indexes; do
 		json_select "$index" || return 1
 		for pem_key in keyPem fullchainPem; do
-			json_get_var pem_value "$pem_key"
+			json_get_var pem_value "$pem_key" 2>/dev/null || pem_value=
 			[ -z "$pem_value" ] || json_add_string "$pem_key" "$ACMESH_CONFIG_SECRET_PLACEHOLDER"
 		done
 		json_select ..
@@ -110,7 +110,7 @@ acmesh_config_materialize_secrets() (
 		acmesh_profile_validate_id "$profile_id" || return 2
 		old_index="$(acmesh_config_find_profile_index "$current" deployProfiles "$profile_id")"
 		for pem_key in keyPem fullchainPem; do
-			json_get_var pem_value "$pem_key"
+			json_get_var pem_value "$pem_key" 2>/dev/null || pem_value=
 			[ "$pem_value" = "$ACMESH_CONFIG_SECRET_PLACEHOLDER" ] || continue
 			[ -n "$old_index" ] || return 2
 			[ "$new_cert_source" = paste-pem ] || return 2

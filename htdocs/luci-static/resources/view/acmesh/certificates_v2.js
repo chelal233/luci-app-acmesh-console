@@ -4,6 +4,15 @@
 'require acmesh.api_v2 as acmeshApi';
 'require acmesh.authorization_v2 as authorization';
 
+function requireConfig(response) {
+	if (!response || response.ok === false || !response.global ||
+		!Array.isArray(response.accountProfiles) ||
+		!Array.isArray(response.issueProfiles) ||
+		!Array.isArray(response.deployProfiles))
+		throw new Error(response && response.error || _('Unable to load configuration'));
+	return response;
+}
+
 function panel(title, value, warning) {
 	return E('div', { 'class': 'acmesh-panel ' + (warning ? 'is-warning' : '') }, [
 		E('span', {}, title),
@@ -66,7 +75,7 @@ return view.extend({
 		return Promise.all([
 			acmeshApi.read('status'),
 			acmeshApi.read('core_status'),
-			L.resolveDefault(acmeshApi.write('config_get', {}), {})
+			acmeshApi.write('config_get', {}).then(requireConfig)
 		]);
 	},
 

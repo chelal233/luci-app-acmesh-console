@@ -43,6 +43,21 @@ acmesh_auth_prepare issue issueProfile issue-1 "$TMP/material/current" "$TMP/mat
 [ "$(jsonfilter -i "$TMP/state/authorizations.json" -e '@.records[0].useCount')" = 2 ]
 tail -n 1 "$TMP/admitted" | grep -Fx 'issue-1:remembered' >/dev/null || { echo "remembered authorization clobbered admission identity"; exit 1; }
 
+# Snapshot creation is used by production recompute callbacks. It must not
+# overwrite the list function's temporary directory, and expected stale probes
+# must never leak diagnostics into the JSON transport.
+recompute_via_snapshot() {
+	ACMESH_AUTH_ACCOUNT_ID=account-1 ACMESH_AUTH_CA=letsencrypt ACMESH_AUTH_PRIMARY_DOMAIN=example.com \
+	ACMESH_AUTH_DOMAINS=example.com ACMESH_AUTH_KEY_TYPE=ec256 ACMESH_AUTH_VALIDATION=dns ACMESH_AUTH_DNS_API=dns_cf \
+	ACMESH_AUTH_DNS_SLEEP=30 ACMESH_AUTH_TEST_MODE=false acmesh_auth_snapshot issue issueProfile issue-1 "$4"
+	acmesh_auth_summary "$4" "$5"
+}
+export ACMESH_AUTH_RECOMPUTE_CALLBACK=recompute_via_snapshot
+listed="$(acmesh_auth_list 2> "$TMP/list.stderr")"
+[ ! -s "$TMP/list.stderr" ] || { echo "authorization list leaked recompute diagnostics"; cat "$TMP/list.stderr"; exit 1; }
+printf '%s' "$listed" | grep -F '"status":"Active"' >/dev/null || { echo "authorization list lost recomputed snapshot"; exit 1; }
+export ACMESH_AUTH_RECOMPUTE_CALLBACK=recompute
+
 # A canonical snapshot cannot be admitted under a different caller-supplied subject.
 before_admissions="$(wc -l < "$TMP/admitted" | tr -d ' ')"
 if acmesh_auth_prepare issue issueProfile substituted-subject "$TMP/material/current" "$TMP/material/summary" >/dev/null 2>&1; then

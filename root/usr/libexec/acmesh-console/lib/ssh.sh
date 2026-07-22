@@ -83,13 +83,34 @@ acmesh_ssh_scan_host_key() {
 	keygen="${ACMESH_SSH_KEYGEN_BIN:-ssh-keygen}"
 	command -v "$scanner" >/dev/null 2>&1 || return 127
 	command -v "$keygen" >/dev/null 2>&1 || return 127
-	scan_line="$("$scanner" -T "${ACMESH_SSH_SCAN_TIMEOUT:-5}" -p "$port" "$host" 2>/dev/null | sed -n '/^[^#][^ ]* ssh-[A-Za-z0-9-]* [A-Za-z0-9+\/=]*$/p' | head -n 1)"
+	scan_file="$(mktemp "${TMPDIR:-/tmp}/acmesh-keyscan.XXXXXX")" || return 1
+	"$scanner" -T "${ACMESH_SSH_SCAN_TIMEOUT:-5}" -p "$port" "$host" 2>/dev/null |
+		sed -n '/^[^#][^ ]* ssh-[A-Za-z0-9-]* [A-Za-z0-9+\/=]*$/p' > "$scan_file"
+	[ -s "$scan_file" ] || { rm -f "$scan_file"; return 1; }
+	acmesh_ssh_scan_token="$(acmesh_ssh_known_host_token "$host" "$port")"
+	known_hosts="$(acmesh_ssh_known_hosts_file)"
+	scan_line=""
+	if [ -f "$known_hosts" ]; then
+		# ssh-keyscan output order is not stable. Prefer a key that is already
+		# pinned, then a key using a pinned algorithm, before considering a new
+		# algorithm. This prevents an additional server host-key algorithm from
+		# being misreported as a replacement of the trusted identity.
+		scan_line="$(awk -v token="$acmesh_ssh_scan_token" '
+			FILENAME == ARGV[1] { if ($1 == token) pinned[$2 SUBSEP $3] = 1; next }
+			pinned[$2 SUBSEP $3] { print; exit }
+		' "$known_hosts" "$scan_file" 2>/dev/null || true)"
+		[ -n "$scan_line" ] || scan_line="$(awk -v token="$acmesh_ssh_scan_token" '
+			FILENAME == ARGV[1] { if ($1 == token) algorithms[$2] = 1; next }
+			algorithms[$2] { print; exit }
+		' "$known_hosts" "$scan_file" 2>/dev/null || true)"
+	fi
+	[ -n "$scan_line" ] || scan_line="$(head -n 1 "$scan_file")"
+	rm -f "$scan_file"
 	[ -n "$scan_line" ] || return 1
 	set -- $scan_line
 	[ "$#" -ge 3 ] || return 1
 	acmesh_ssh_scan_algorithm="$2"
 	acmesh_ssh_scan_key_data="$3"
-	acmesh_ssh_scan_token="$(acmesh_ssh_known_host_token "$host" "$port")"
 	fingerprint_file="$(mktemp "${TMPDIR:-/tmp}/acmesh-hostkey.XXXXXX")" || return 1
 	printf '%s %s\n' "$acmesh_ssh_scan_algorithm" "$acmesh_ssh_scan_key_data" > "$fingerprint_file"
 	acmesh_ssh_scan_fingerprint="$("$keygen" -f "$fingerprint_file" -l -E sha256 2>/dev/null | awk '{print $2; exit}')"

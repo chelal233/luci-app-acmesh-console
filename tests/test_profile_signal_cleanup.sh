@@ -9,17 +9,19 @@ TMP="$ROOT/tests/.tmp/profile-signal"
 rm -rf "$TMP"
 mkdir -p "$TMP"
 resolved="$TMP/resolved.json"
+ready="$TMP/ready"
 after="$TMP/continued"
 (
 	: > "$resolved"
 	acmesh_profile_install_cleanup_traps "$resolved"
+	: > "$ready"
 	while :; do :; done
 	: > "$after"
 ) &
 pid=$!
 round=0
-while [ ! -e "$resolved" ] && [ "$round" -lt 10000 ]; do round=$((round + 1)); :; done
-[ -e "$resolved" ] || { echo "signal fixture did not become ready"; kill "$pid" 2>/dev/null || :; exit 1; }
+while [ ! -e "$ready" ] && [ "$round" -lt 10000 ]; do round=$((round + 1)); :; done
+[ -e "$ready" ] || { echo "signal fixture did not become ready"; kill "$pid" 2>/dev/null || :; exit 1; }
 kill -TERM "$pid"
 set +e
 wait "$pid"

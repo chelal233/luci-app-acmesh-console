@@ -153,7 +153,7 @@ acmesh_auth_emit_core() {
 	acmesh_canon_string backupPolicy "${ACMESH_AUTH_BACKUP_POLICY:-rollback-v1}" || return $?
 }
 
-acmesh_auth_snapshot() {
+acmesh_auth_snapshot() (
 	operation="${1:-}" subject_type="${2:-}" subject_id="${3:-}" output="${4:-}"
 	[ -n "$operation" ] && [ -n "$subject_type" ] && [ -n "$subject_id" ] && [ -n "$output" ] || return 2
 	instance_id="$(acmesh_auth_instance_id)" || return 1
@@ -183,7 +183,7 @@ acmesh_auth_snapshot() {
 	) || { rm -f "$tmp"; trap - HUP INT TERM EXIT; return 1; }
 	chmod 600 "$tmp" && mv -f "$tmp" "$output" && chmod 600 "$output" || return 1
 	trap - HUP INT TERM EXIT
-}
+)
 
 acmesh_auth_fingerprint() {
 	snapshot="${1:-}"
@@ -529,7 +529,7 @@ acmesh_auth_list_locked() {
 		status=Unsupported; tmp="$ACMESH_AUTH_CHALLENGE_DIR/.list.$$.$i"; acmesh_private_dir "$tmp" || return 1
 		if acmesh_auth_operation_supported "$operation"; then
 			status=Stale
-			if acmesh_auth_call_recompute "$operation" "$subject_type" "$subject_id" "$tmp/snapshot" "$tmp/summary" && acmesh_auth_snapshot_identity_matches "$tmp/snapshot" "$operation" "$subject_type" "$subject_id"; then current="$(acmesh_auth_fingerprint "$tmp/snapshot" 2>/dev/null || true)"; [ "$current" != "$expected" ] || status=Active; fi
+			if { acmesh_auth_call_recompute "$operation" "$subject_type" "$subject_id" "$tmp/snapshot" "$tmp/summary" && acmesh_auth_snapshot_identity_matches "$tmp/snapshot" "$operation" "$subject_type" "$subject_id"; } 2>/dev/null; then current="$(acmesh_auth_fingerprint "$tmp/snapshot" 2>/dev/null || true)"; [ "$current" != "$expected" ] || status=Active; fi
 		fi
 		rm -rf "$tmp"; [ "$first" = 1 ] || printf ','; first=0
 		record="$(acmesh_auth_emit_record "$ACMESH_AUTH_LEDGER_FILE" "$i")"; printf '%s,"status":"%s"}' "${record%\}}" "$status"

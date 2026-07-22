@@ -30,7 +30,7 @@ case "$default_json" in
 	*) echo "default config missing profile arrays"; echo "$default_json"; exit 1 ;;
 esac
 
-saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[{"id":"pem1","name":"PEM","type":"local","certSource":"paste-pem","keyPem":"private-key-secret","fullchainPem":"certificate-secret","keyFile":"/tmp/key.pem","fullchainFile":"/tmp/fullchain.pem","owner":"root","group":"root","mode":"0600"}]}'
+saved='{"schemaVersion":2,"global":{"defaultAccountEmail":"ops@example.com","coreTag":"v3.1.4","acmeHome":"'"$ROOT"'/tests/.tmp/config-acme-home"},"accountProfiles":[{"id":"acc1","name":"LE Staging","ca":"letsencrypt_staging","accountEmail":""}],"issueProfiles":[{"id":"issue1","name":"Gate","domain":"gate.example.org","accountProfileId":"acc1","deployProfileId":"","keyType":"ec256","validationMethod":"dns","testModeOverride":"force-real-mode","dnsApi":"dns_cf","credentialMode":"token","credentials":{"CF_Token":"secret-token","CF_Zone_ID":"zone-id"}}],"deployProfiles":[{"id":"pem1","name":"PEM","type":"local","certSource":"paste-pem","keyPem":"private-key-secret","fullchainPem":"certificate-secret","keyFile":"/tmp/key.pem","fullchainFile":"/tmp/fullchain.pem","owner":"root","group":"root","mode":"0600"},{"id":"managed1","name":"Managed","type":"local","certSource":"managed-acme","domain":"managed.example.org","keyType":"ec256","keyFile":"/tmp/managed.key","fullchainFile":"/tmp/managed.fullchain"}]}'
 request="$ROOT/tests/.tmp/config-save-request.json"
 printf '%s\n' "$saved" > "$request"
 chmod 600 "$request"
@@ -53,6 +53,7 @@ esac
 loaded="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" config-get)"
 printf '%s' "$loaded" | jsonfilter -e '@.global.defaultAccountEmail' | grep -Fx ops@example.com >/dev/null || { echo "saved config was not loaded"; exit 1; }
 printf '%s' "$loaded" | jsonfilter -e '@.accountProfiles[0].id' | grep -Fx acc1 >/dev/null || { echo "account profile was not loaded"; exit 1; }
+printf '%s' "$loaded" | jsonfilter -e '@.deployProfiles[1].id' | grep -Fx managed1 >/dev/null || { echo "managed deploy profile without optional PEM fields was not loaded"; exit 1; }
 printf '%s' "$loaded" | grep -F 'secret-token' >/dev/null && { echo "config-get leaked DNS credentials"; exit 1; } || :
 printf '%s' "$loaded" | grep -F 'private-key-secret' >/dev/null && { echo "config-get leaked private key PEM"; exit 1; } || :
 printf '%s' "$loaded" | grep -F 'certificate-secret' >/dev/null && { echo "config-get leaked certificate PEM"; exit 1; } || :

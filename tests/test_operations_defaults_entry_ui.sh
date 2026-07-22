@@ -16,6 +16,9 @@ require_text "Test mode policy"
 require_text "force-test-mode"
 require_text "force-real-mode"
 require_text "testModeOverride"
+require_text "function requireConfig(response)"
+require_text "acmeshApi.write('config_get', {}).then(requireConfig)"
+require_text ".then(requireConfig).then(function(next)"
 
 reject_text() {
 	needle="$1"

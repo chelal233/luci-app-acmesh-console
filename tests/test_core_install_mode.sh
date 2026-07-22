@@ -3,10 +3,12 @@ set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 export ACMESH_LIB_DIR="$ROOT/root/usr/libexec/acmesh-console/lib"
+export ACMESH_CONSOLE_CONFIG="$ROOT/tests/.tmp/core-install-missing-config.json"
+export ACMESH_CONSOLE_UCI_CONFIG="$ROOT/tests/.tmp/core-install-missing-uci"
 export ACMESH_TASK_STATE_DIR="$ROOT/tests/.tmp/core-install-state"
 export ACMESH_TASK_LOG_DIR="$ROOT/tests/.tmp/core-install-log"
 home="$ROOT/tests/.tmp/core-install-home"
-rm -rf "$ACMESH_TASK_STATE_DIR" "$ACMESH_TASK_LOG_DIR" "$home"
+rm -rf "$ACMESH_CONSOLE_CONFIG" "$ACMESH_CONSOLE_UCI_CONFIG" "$ACMESH_TASK_STATE_DIR" "$ACMESH_TASK_LOG_DIR" "$home"
 
 out="$(sh "$ROOT/root/usr/libexec/acmesh-console/acmeshctl" core-install --home "$home" --email admin@example.com --test-mode)"
 case "$out" in

@@ -41,6 +41,9 @@ case "\$cmd" in
 	*)
 		[ "\${1:-}" = --request-file ] && [ -f "\${2:-}" ] || exit 3
 		cat "\$2" > "$payloads/\$cmd.json"
+		if grep -F '"tag":"backend-empty"' "\$2" >/dev/null; then
+			exit 1
+		fi
 		if grep -F '"tag":"authorization-required"' "\$2" >/dev/null; then
 			printf '{"ok":false,"authorizationRequired":true,"challengeId":"challenge-1"}\n'
 			exit 3
@@ -102,6 +105,16 @@ authorization_rc=$?
 case "$authorization" in
 	*'"ok":false'*'"authorizationRequired":true'*'"challengeId"'*) ;;
 	*) echo "rpc authorization response was lost"; echo "$authorization"; exit 1 ;;
+esac
+
+empty_id=44444444444444444444444444444444
+create_request "$empty_id" '{"tag":"backend-empty","testMode":false}'
+empty_response="$(sh "$ROOT/root/usr/libexec/acmesh-console/rpc-write" core_install --request-id "$empty_id")"
+empty_rc=$?
+[ "$empty_rc" = 0 ] || { echo "empty backend response should be delivered as structured JSON"; exit 1; }
+case "$empty_response" in
+	*'"ok":false'*'"backend returned no response"'*'"exitCode":1'*) ;;
+	*) echo "empty backend response was not converted to structured JSON"; echo "$empty_response"; exit 1 ;;
 esac
 
 grep -F 'core-install --request-file ' "$calls" >/dev/null

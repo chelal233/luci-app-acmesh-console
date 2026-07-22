@@ -20,9 +20,11 @@ acmesh_profile_file_mode() { [ -z "$1" ] || { acmesh_profile_single_line "$1" ||
 acmesh_profile_install_cleanup_traps() {
 	ACMESH_RESOLVED_CLEANUP_FILE="$1"
 	trap 'rm -f -- "$ACMESH_RESOLVED_CLEANUP_FILE"' EXIT
-	trap 'exit 129' HUP
-	trap 'exit 130' INT
-	trap 'exit 143' TERM
+	# BusyBox ash does not reliably run the EXIT trap after exiting from a
+	# signal trap, so remove the resolved secret snapshot in each signal path.
+	trap 'rm -f -- "$ACMESH_RESOLVED_CLEANUP_FILE"; exit 129' HUP
+	trap 'rm -f -- "$ACMESH_RESOLVED_CLEANUP_FILE"; exit 130' INT
+	trap 'rm -f -- "$ACMESH_RESOLVED_CLEANUP_FILE"; exit 143' TERM
 }
 
 acmesh_profile_validate_global() {

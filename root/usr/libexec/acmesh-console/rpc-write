@@ -76,4 +76,8 @@ if [ -n "$response" ]; then
 		\{*'"ok":'*\}) exit 0 ;;
 	esac
 fi
+[ -n "$response" ] || {
+	printf '{"ok":false,"error":"backend returned no response","exitCode":%s}\n' "$rc"
+	exit 0
+}
 exit "$rc"

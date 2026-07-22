@@ -18,6 +18,15 @@ const DEFAULT_CONFIG = {
 const SECRET_PLACEHOLDER = '********';
 const TERMINAL_TASK_STATES = [ 'success', 'failed', 'interrupted', 'cancelled' ];
 
+function requireConfig(response) {
+	if (!response || response.ok === false || !response.global ||
+		!Array.isArray(response.accountProfiles) ||
+		!Array.isArray(response.issueProfiles) ||
+		!Array.isArray(response.deployProfiles))
+		throw new Error(response && response.error || _('Unable to load configuration'));
+	return response;
+}
+
 const DNS_PROVIDER_TEMPLATES = {
 	dns_cf: {
 		title: _('Cloudflare'),
@@ -576,7 +585,7 @@ function importedCredentialMode(dnsApi, rawVars) {
 
 return view.extend({
 	load: function() {
-		return Promise.all([ acmeshApi.write('config_get', {}), acmeshApi.read('core_status'), acmeshApi.read('status'), acmeshApi.read('authorization_list') ]);
+		return Promise.all([ acmeshApi.write('config_get', {}).then(requireConfig), acmeshApi.read('core_status'), acmeshApi.read('status'), acmeshApi.read('authorization_list') ]);
 	},
 
 	render: function(results) {
@@ -597,7 +606,7 @@ return view.extend({
 		};
 
 		const refresh = function() {
-			return acmeshApi.write('config_get', {}).then(function(next) {
+			return acmeshApi.write('config_get', {}).then(requireConfig).then(function(next) {
 				config = mergeConfig(next);
 				renderBody();
 			});

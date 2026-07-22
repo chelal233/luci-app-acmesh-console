@@ -18,6 +18,8 @@ Build the package in an OpenWrt SDK or buildroot and install the resulting packa
 
 For the verified Windows + WSL2 workflow covering SDK APK builds, x86-64/ext4 ImageBuilder images, the existing third-party plugin set, full source builds, router tests, and release gates, see [`docs/IMMORTALWRT_BUILD_WORKFLOW.md`](docs/IMMORTALWRT_BUILD_WORKFLOW.md).
 
+GitHub Actions can build release packages for ten common architectures. Run **Build release packages** manually to obtain workflow artifacts, or push a tag matching `v<PKG_VERSION>` (for example, `v0.1.0`) to build and attach all packages to a GitHub release. OpenWrt 24.10 jobs produce `.ipk` files for `opkg`; OpenWrt SNAPSHOT jobs produce `.apk` files for `apk`. This LuCI application is not an Entware package, so the workflow deliberately does not publish misleading `.opk` aliases.
+
 After installation, open **Services → acme.sh Console** in LuCI. The package keeps private state under `/etc/acmesh-console` with directory mode `0700` and private files mode `0600`.
 
 ## Accounts, issue profiles, deploy profiles

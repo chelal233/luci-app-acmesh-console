@@ -1202,3 +1202,9 @@ msgstr "主机"
 
 msgid "Port"
 msgstr "端口"
+
+msgid "Unable to load configuration"
+msgstr "无法加载配置"
+
+msgid "Saving defaults"
+msgstr "正在保存默认设置"

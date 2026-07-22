@@ -23,7 +23,11 @@ host=""
 while [ "$#" -gt 0 ]; do
 	case "$1" in -p|-T|-t) shift 2 ;; *) host="$1"; shift ;; esac
 done
-printf '%s %s %s\n' "$host" "${ACMESH_TEST_HOSTKEY_ALGORITHM:-ssh-ed25519}" "${ACMESH_TEST_HOSTKEY_DATA:-AAAAfirst}"
+if [ -n "${ACMESH_TEST_HOSTKEY_LINES:-}" ]; then
+	printf '%b\n' "$ACMESH_TEST_HOSTKEY_LINES"
+else
+	printf '%s %s %s\n' "$host" "${ACMESH_TEST_HOSTKEY_ALGORITHM:-ssh-ed25519}" "${ACMESH_TEST_HOSTKEY_DATA:-AAAAfirst}"
+fi
 EOF
 cat > "$TEST_ROOT/bin/ssh-keygen" <<'EOF'
 #!/bin/sh
@@ -34,6 +38,7 @@ done
 case "$(cat "$file")" in
 	*AAAAfirst*) printf '256 SHA256:first fixture (ED25519)\n' ;;
 	*AAAAsecond*) printf '256 SHA256:second fixture (ED25519)\n' ;;
+	*AAAArsa*) printf '3072 SHA256:rsa fixture (RSA)\n' ;;
 	*) exit 1 ;;
 esac
 EOF
@@ -103,6 +108,18 @@ confirm="$(acmesh_ssh_confirm_host_key "$new_challenge")"
 case "$confirm" in *'"ok":true'*'"fingerprint":"SHA256:second"'*) ;; *) echo "matching second challenge should pin host"; echo "$confirm"; exit 1;; esac
 acmesh_ssh_verify_pinned_host example.com 22 >/dev/null
 grep -q 'ssh-ed25519 AAAAsecond' "$ACMESH_SSH_DIR/known_hosts" || { echo "confirmed host key was not pinned"; exit 1; }
+
+# A server may advertise more host-key algorithms over time. A still-present
+# pinned key must win over ssh-keyscan's unstable output order.
+printf 'multi.example ssh-rsa AAAArsa\n' >> "$ACMESH_SSH_DIR/known_hosts"
+ACMESH_TEST_HOSTKEY_LINES='multi.example ssh-ed25519 AAAAsecond\nmulti.example ssh-rsa AAAArsa'
+export ACMESH_TEST_HOSTKEY_LINES
+multi_probe="$(acmesh_ssh_probe_host_key multi.example 22)"
+case "$multi_probe" in
+	*'"ok":true'*'"algorithm":"ssh-rsa"'*'"fingerprint":"SHA256:rsa"'*) ;;
+	*) echo "an additional host-key algorithm was mistaken for key replacement"; echo "$multi_probe"; exit 1 ;;
+esac
+unset ACMESH_TEST_HOSTKEY_LINES
 
 ACMESH_TEST_HOSTKEY_DATA=AAAAfirst
 export ACMESH_TEST_HOSTKEY_DATA
