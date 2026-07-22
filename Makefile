@@ -40,5 +40,3 @@ define Package/luci-app-acmesh-console/conffiles
 endef
 
 include ../../luci.mk
-
-# call BuildPackage - OpenWrt buildroot signature
