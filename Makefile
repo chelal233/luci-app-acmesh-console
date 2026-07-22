@@ -7,16 +7,10 @@ PKG_NAME:=luci-app-acmesh-console
 PKG_VERSION:=0.1.0
 PKG_RELEASE:=1
 PKG_LICENSE:=GPL-3.0-or-later
-PKG_FILE_MODES:=/etc/init.d/acmesh-console:root:root:0755 \
-	/etc/uci-defaults/99-acmesh-console-cleanup:root:root:0755 \
-	/usr/libexec/acmesh-console/acmeshctl:root:root:0755 \
-	/usr/libexec/acmesh-console/hooks/acmesh-console-ssh.sh:root:root:0755 \
-	/usr/libexec/acmesh-console/rpc-read:root:root:0755 \
-	/usr/libexec/acmesh-console/rpc-write:root:root:0755
 
 # Windows/DrvFS checkouts report every source entry as 0777. APK packaging
-# preserves those modes and does not consume PKG_FILE_MODES, so normalize the
-# prepared LuCI tree through luci.mk's per-application prepare hook.
+# may preserve those modes, so normalize the prepared LuCI tree through
+# luci.mk's per-application prepare hook before any package is assembled.
 define Build/Prepare/luci-app-acmesh-console
 	find $(PKG_BUILD_DIR) -type d -exec chmod 0755 {} +
 	find $(PKG_BUILD_DIR) -type f -exec chmod 0644 {} +
