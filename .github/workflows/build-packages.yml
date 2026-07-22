@@ -1,3 +1,4 @@
+# Build IPK packages for OpenWrt 24.10 and APK packages for OpenWrt SNAPSHOT.
 name: Build release packages
 
 on:
