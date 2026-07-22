@@ -1,6 +1,6 @@
 # luci-app-acmesh-console
 
-[![Build release packages](https://github.com/xfvvvv/luci-app-acmesh-console/actions/workflows/build-packages.yml/badge.svg)](https://github.com/xfvvvv/luci-app-acmesh-console/actions/workflows/build-packages.yml)
+[![Build release packages](https://github.com/chelal233/luci-app-acmesh-console/actions/workflows/build-packages.yml/badge.svg)](https://github.com/chelal233/luci-app-acmesh-console/actions/workflows/build-packages.yml)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![OpenWrt](https://img.shields.io/badge/OpenWrt-LuCI-00B5E2.svg)](https://openwrt.org/)
 [![acme.sh](https://img.shields.io/badge/ACME-acme.sh-green.svg)](https://github.com/acmesh-official/acme.sh)
@@ -9,9 +9,9 @@
 
 > **Powered by Codex**
 >
-> Initiated, specified and maintained by **xfvvvv**. Core architecture, primary implementation, security review, automated testing and release engineering were created in collaboration with **Codex (OpenAI)**.
+> Initiated, specified and maintained by **chelal233**. Core architecture, primary implementation, security review, automated testing and release engineering were created in collaboration with **Codex (OpenAI)**.
 >
-> 本项目由 **xfvvvv** 发起、定义需求并维护；核心架构、主要实现、安全复审、自动化测试与发布工程由 **Codex（OpenAI）** 协作完成。
+> 本项目由 **chelal233** 发起、定义需求并维护；核心架构、主要实现、安全复审、自动化测试与发布工程由 **Codex（OpenAI）** 协作完成。
 
 <a id="english"></a>
 
@@ -34,6 +34,7 @@ The browser submits an operation intent, while the router backend reloads the sa
 - protected secrets, redacted logs and router-local trust state;
 - auditable background tasks with atomic status, stages and exit codes;
 - official `acme.sh` core installation and upgrades;
+- English source UI plus Simplified Chinese, Traditional Chinese, Japanese and Korean catalogs;
 - multi-architecture IPK and APK builds through GitHub Actions.
 
 ### Security model
@@ -52,7 +53,7 @@ Private state is stored under `/etc/acmesh-console` using `0700` directories and
 | OpenWrt SNAPSHOT | `.apk` | `apk` |
 | ImmortalWrt 25.12.1 | `.apk` | `apk` |
 
-Download the main package and the Simplified Chinese translation package from [Releases](https://github.com/xfvvvv/luci-app-acmesh-console/releases), verify `SHA256SUMS`, then install them with the matching package manager. This project is not an Entware package and does not publish `.opk` aliases.
+Download the main package and the required language package from [Releases](https://github.com/chelal233/luci-app-acmesh-console/releases), verify `SHA256SUMS`, then install them with the matching package manager. Translation packages use the suffixes `zh-cn`, `zh-tw`, `ja` and `ko`. This project is not an Entware package and does not publish `.opk` aliases.
 
 After installation, open **LuCI → Services → acme.sh Console**. See the [Simplified Chinese documentation](#简体中文) below for complete installation, operation, CLI, build and verification instructions.
 
@@ -77,13 +78,14 @@ After installation, open **LuCI → Services → acme.sh Console**. See the [Sim
 - SSH ホスト鍵の SHA-256 指紋確認、固定、変更時の強制停止；
 - 操作内容に厳密に結び付いた一回限り、または記憶可能なリスク承認；
 - 秘密情報の保護、ログのマスキング、監査可能なバックグラウンドタスク；
+- 英語の標準 UI と、簡体字中国語・繁体字中国語・日本語・韓国語の翻訳；
 - GitHub Actions による複数アーキテクチャ向け IPK / APK ビルド。
 
 ### セキュリティと対応環境
 
 グローバルなテストモード、デバッグ回避、`--yes`、`--force-all`、全確認無効化オプションはありません。秘密データは `/etc/acmesh-console` に保存され、ディレクトリは `0700`、秘密ファイルは `0600` です。
 
-OpenWrt 24.10 向けに IPK、OpenWrt SNAPSHOT と ImmortalWrt 25.12.1 向けに APK を提供します。パッケージは [Releases](https://github.com/xfvvvv/luci-app-acmesh-console/releases) から取得し、`SHA256SUMS` を確認してからインストールしてください。詳細な手順は下記の[簡体字中国語ドキュメント](#简体中文)を参照してください。
+OpenWrt 24.10 向けに IPK、OpenWrt SNAPSHOT と ImmortalWrt 25.12.1 向けに APK を提供します。パッケージは [Releases](https://github.com/chelal233/luci-app-acmesh-console/releases) から取得し、`SHA256SUMS` を確認してからインストールしてください。詳細な手順は下記の[簡体字中国語ドキュメント](#简体中文)を参照してください。
 
 公式 [`acmesh-official/acme.sh`](https://github.com/acmesh-official/acme.sh) が ACME 動作の唯一の正規情報源です。本プロジェクトは公式クライアントを置換、フォーク、再解釈しません。
 
@@ -119,7 +121,7 @@ OpenWrt 24.10 向けに IPK、OpenWrt SNAPSHOT と ImmortalWrt 25.12.1 向けに
 - 核心管理：安装或升级选定版本的官方 `acme.sh`；
 - 配置迁移：导入和导出配置，同时排除路由器本地信任状态；
 - 风险授权：支持仅本次执行，以及在允许的操作上记住精确授权；
-- 简体中文界面；
+- 英文默认界面，以及简体中文、繁体中文、日语和韩语本地化；
 - GitHub Actions 多架构 IPK / APK 构建和 Release 发布。
 
 ### 安全设计
@@ -176,13 +178,13 @@ OpenWrt 24.10 向けに IPK、OpenWrt SNAPSHOT と ImmortalWrt 25.12.1 向けに
 
 ### 安装
 
-从 [Releases](https://github.com/xfvvvv/luci-app-acmesh-console/releases) 下载与系统包管理器匹配的主包和简体中文包，并先核对 Release 中的 `SHA256SUMS`。
+从 [Releases](https://github.com/chelal233/luci-app-acmesh-console/releases) 下载与系统包管理器匹配的主包和所需语言包，并先核对 Release 中的 `SHA256SUMS`。
 
 ### OpenWrt 24.10 / opkg
 
 ```sh
 opkg install ./luci-app-acmesh-console_*.ipk
-opkg install ./luci-i18n-acmesh-console-zh-cn_*.ipk
+opkg install ./luci-i18n-acmesh-console-LANGUAGE_*.ipk
 ```
 
 ### OpenWrt SNAPSHOT 或 ImmortalWrt 25.12 / apk
@@ -191,8 +193,10 @@ opkg install ./luci-i18n-acmesh-console-zh-cn_*.ipk
 
 ```sh
 apk add --allow-untrusted ./luci-app-acmesh-console-*.apk
-apk add --allow-untrusted ./luci-i18n-acmesh-console-zh-cn-*.apk
+apk add --allow-untrusted ./luci-i18n-acmesh-console-LANGUAGE-*.apk
 ```
+
+将 `LANGUAGE` 替换为所需语言：`zh-cn`（简体中文）、`zh-tw`（繁体中文）、`ja`（日语）或 `ko`（韩语）。英文为 LuCI 源文本，无需额外语言包。
 
 安装完成后进入：
 
@@ -308,7 +312,7 @@ ls /www/luci-static/resources/view/acmesh/operations*.js
 
 ### 作者与致谢
 
-- 项目发起、需求定义与维护：**xfvvvv**；
+- 项目发起、需求定义与维护：**chelal233**；
 - 主要工程作者：**Codex（OpenAI）**；
 - ACME 客户端与协议行为来源：[`acmesh-official/acme.sh`](https://github.com/acmesh-official/acme.sh)；
 - Web 管理框架：OpenWrt LuCI。

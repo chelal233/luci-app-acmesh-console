@@ -1,0 +1,1210 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-acmesh-console\\n"
+"PO-Revision-Date: 2026-07-23 00:00+0800\\n"
+"Last-Translator: acmesh-console maintainers\\n"
+"Language-Team: Korean\\n"
+"Language: ko\\n"
+"MIME-Version: 1.0\\n"
+"Content-Type: text/plain; charset=UTF-8\\n"
+"Content-Transfer-Encoding: 8bit\\n"
+
+msgid "acme.sh Console"
+msgstr "acme.sh 콘솔"
+
+msgid "Certificates"
+msgstr "인증서"
+
+msgid "Operations"
+msgstr "작업"
+
+msgid "Logs"
+msgstr "로그"
+
+msgid "Core & Defaults"
+msgstr "코어 및 기본값"
+
+msgid "Default account email"
+msgstr "기본 계정 이메일"
+
+msgid "Global Test Mode"
+msgstr "전역 테스트 모드"
+
+msgid "Enable by default"
+msgstr "기본으로 활성화"
+
+msgid "ACME home"
+msgstr "ACME 홈"
+
+msgid "Core tag candidates"
+msgstr "코어 태그 후보"
+
+msgid "Save defaults"
+msgstr "기본값 저장"
+
+msgid "Install selected tag"
+msgstr "선택한 태그 설치"
+
+msgid "Upgrade selected tag"
+msgstr "선택한 태그로 업그레이드"
+
+msgid "Installed"
+msgstr "설치됨"
+
+msgid "Script"
+msgstr "스크립트"
+
+msgid "Version"
+msgstr "버전"
+
+msgid "Yes"
+msgstr "예"
+
+msgid "No"
+msgstr "아니요"
+
+msgid "Accounts"
+msgstr "계정"
+
+msgid "Account profiles"
+msgstr "계정 프로필"
+
+msgid "Issue Profiles"
+msgstr "발급 프로필"
+
+msgid "Deploy Profiles"
+msgstr "배포 프로필"
+
+msgid "Issue profiles"
+msgstr "발급 프로필"
+
+msgid "Deploy profiles"
+msgstr "배포 프로필"
+
+msgid "Name"
+msgstr "이름"
+
+msgid "Domain"
+msgstr "도메인"
+
+msgid "Account"
+msgstr "계정"
+
+msgid "Deploy"
+msgstr "배포"
+
+msgid "Validation"
+msgstr "검증"
+
+msgid "Status"
+msgstr "상태"
+
+msgid "Type"
+msgstr "유형"
+
+msgid "Certificate source"
+msgstr "인증서 소스"
+
+msgid "Target"
+msgstr "대상"
+
+msgid "Reload command"
+msgstr "다시 로드 명령"
+
+msgid "Run"
+msgstr "실행"
+
+msgid "DNS Test"
+msgstr "DNS 테스트"
+
+msgid "Test"
+msgstr "테스트"
+
+msgid "Edit"
+msgstr "편집"
+
+msgid "Delete"
+msgstr "삭제"
+
+msgid "Add"
+msgstr "추가"
+
+msgid "Ignore"
+msgstr "무시"
+
+msgid "Save account"
+msgstr "계정 저장"
+
+msgid "Save issue profile"
+msgstr "발급 프로필 저장"
+
+msgid "Save deploy profile"
+msgstr "배포 프로필 저장"
+
+msgid "Task output"
+msgstr "작업 출력"
+
+msgid "Summary"
+msgstr "요약"
+
+msgid "Creating task"
+msgstr "작업 생성 중"
+
+msgid "Issue succeeded; starting deploy profile"
+msgstr "인증서 발급 성공, 배포 프로필을 시작합니다"
+
+msgid "The CA rejected the account email. Replace example.com with a real mailbox in the account profile or defaults."
+msgstr "CA가 계정 이메일을 거부했습니다. 계정 프로필 또는 기본값의 example.com을 실제 이메일 주소로 바꾸십시오."
+
+msgid "The DNS provider rejected the TXT record. Check that the domain belongs to this DNS account and that the selected DNS API credentials match the provider."
+msgstr "DNS 공급자가 TXT 레코드를 거부했습니다. 도메인이 이 DNS 계정에 속하는지와 선택한 DNS API 자격 증명이 공급자와 일치하는지 확인하십시오."
+
+msgid "The DNS provider failed to create the ACME TXT record. Recheck DNS API credentials, zone ownership, and provider-specific permissions."
+msgstr "DNS 공급자가 ACME TXT 레코드를 만들지 못했습니다. DNS API 자격 증명, 영역 소유권 및 공급자별 권한을 다시 확인하십시오."
+
+msgid "OpenSSL is missing on the router. Install openssl-util before installing or upgrading acme.sh."
+msgstr "라우터에 OpenSSL이 없습니다. acme.sh를 설치하거나 업그레이드하기 전에 openssl-util을 설치하십시오."
+
+msgid "acme.sh is not installed in the configured ACME home. Install the selected core tag first."
+msgstr "설정된 ACME 홈에 acme.sh가 설치되어 있지 않습니다. 먼저 선택한 코어 태그를 설치하십시오."
+
+msgid "The selected CA value is not supported by the backend. Choose a known CA profile or a valid ACME directory URL."
+msgstr "선택한 CA 값은 백엔드에서 지원하지 않습니다. 알려진 CA 프로필 또는 유효한 ACME 디렉터리 URL을 선택하십시오."
+
+msgid "No entries"
+msgstr "항목 없음"
+
+msgid "No account profiles"
+msgstr "계정 프로필 없음"
+
+msgid "No issue profiles"
+msgstr "발급 프로필 없음"
+
+msgid "Imported"
+msgstr "가져옴"
+
+msgid "Imported issue profiles"
+msgstr "가져온 발급 프로필"
+
+msgid "No deploy profiles"
+msgstr "배포 프로필 없음"
+
+msgid "No deploy profile"
+msgstr "배포 프로필 없음"
+
+msgid "No account profile"
+msgstr "계정 프로필 없음"
+
+msgid "Email overlay"
+msgstr "이메일 재정의"
+
+msgid "Effective email"
+msgstr "적용된 이메일"
+
+msgid "inherit default"
+msgstr "기본값 상속"
+
+msgid "CA / environment"
+msgstr "CA / 환경"
+
+msgid "Account email overlay"
+msgstr "계정 이메일 재정의"
+
+msgid "Test mode policy"
+msgstr "테스트 모드 정책"
+
+msgid "Inherit Global Test Mode"
+msgstr "전역 테스트 모드 상속"
+
+msgid "Always Test Mode"
+msgstr "항상 테스트 모드"
+
+msgid "Always Real Mode"
+msgstr "항상 실제 모드"
+
+msgid "DNS provider"
+msgstr "DNS 공급자"
+
+msgid "Custom DNS API"
+msgstr "사용자 지정 DNS API"
+
+msgid "Official DNS API filter"
+msgstr "공식 DNS API 필터"
+
+msgid "Official DNS API candidates"
+msgstr "공식 DNS API 후보"
+
+msgid "Select official DNS API"
+msgstr "공식 DNS API 선택"
+
+msgid "Credential mode"
+msgstr "자격 증명 모드"
+
+msgid "Custom credential env"
+msgstr "사용자 지정 자격 증명 환경 변수"
+
+msgid "Custom credential value"
+msgstr "사용자 지정 자격 증명 값"
+
+msgid "Custom credentials"
+msgstr "사용자 지정 자격 증명"
+
+msgid "Missing DNS credentials"
+msgstr "DNS 자격 증명 누락"
+
+msgid "Domain is required"
+msgstr "도메인이 필요합니다"
+
+msgid "Issued certificate"
+msgstr "발급된 인증서"
+
+msgid "Local certificate files"
+msgstr "로컬 인증서 파일"
+
+msgid "Paste PEM content"
+msgstr "PEM 내용 붙여넣기"
+
+msgid "Use issued certificate"
+msgstr "발급된 인증서 사용"
+
+msgid "Use local certificate files"
+msgstr "로컬 인증서 파일 사용"
+
+msgid "Certificate domain"
+msgstr "인증서 도메인"
+
+msgid "Source key file"
+msgstr "원본 개인 키 파일"
+
+msgid "Source fullchain file"
+msgstr "원본 전체 체인 파일"
+
+msgid "Private key PEM"
+msgstr "개인 키 PEM"
+
+msgid "Fullchain PEM"
+msgstr "전체 체인 PEM"
+
+msgid "SSH host"
+msgstr "SSH 호스트"
+
+msgid "SSH user"
+msgstr "SSH 사용자"
+
+msgid "SSH port"
+msgstr "SSH 포트"
+
+msgid "SSH private key"
+msgstr "SSH 개인 키"
+
+msgid "Key file"
+msgstr "개인 키 파일"
+
+msgid "Fullchain file"
+msgstr "전체 체인 파일"
+
+msgid "Local key file"
+msgstr "로컬 개인 키 파일"
+
+msgid "Local fullchain file"
+msgstr "로컬 전체 체인 파일"
+
+msgid "Remote key file"
+msgstr "원격 개인 키 파일"
+
+msgid "Remote fullchain file"
+msgstr "원격 전체 체인 파일"
+
+msgid "Local install"
+msgstr "로컬 설치"
+
+msgid "Remote SSH"
+msgstr "원격 SSH"
+
+msgid "Cloudflare"
+msgstr "Cloudflare"
+
+msgid "Token"
+msgstr "토큰"
+
+msgid "Global Key"
+msgstr "전역 키"
+
+msgid "Cloudflare API Token"
+msgstr "Cloudflare API 토큰"
+
+msgid "Cloudflare Zone ID"
+msgstr "Cloudflare 영역 ID"
+
+msgid "Cloudflare Account ID"
+msgstr "Cloudflare 계정 ID"
+
+msgid "Cloudflare Email"
+msgstr "Cloudflare 이메일"
+
+msgid "Cloudflare Global API Key"
+msgstr "Cloudflare 전역 API 키"
+
+msgid "Aliyun"
+msgstr "Alibaba Cloud"
+
+msgid "AccessKey"
+msgstr "AccessKey"
+
+msgid "Aliyun AccessKey ID"
+msgstr "Alibaba Cloud AccessKey ID"
+
+msgid "Aliyun AccessKey Secret"
+msgstr "Alibaba Cloud AccessKey Secret"
+
+msgid "DNSPod.cn"
+msgstr "DNSPod.cn"
+
+msgid "DNSPod ID"
+msgstr "DNSPod ID"
+
+msgid "DNSPod Token"
+msgstr "DNSPod 토큰"
+
+msgid "Tencent Cloud DNSPod"
+msgstr "Tencent Cloud DNSPod"
+
+msgid "SecretId / SecretKey"
+msgstr "SecretId / SecretKey"
+
+msgid "Tencent SecretId"
+msgstr "Tencent SecretId"
+
+msgid "Tencent SecretKey"
+msgstr "Tencent SecretKey"
+
+msgid "DuckDNS"
+msgstr "DuckDNS"
+
+msgid "DuckDNS Token"
+msgstr "DuckDNS 토큰"
+
+msgid "dynv6"
+msgstr "dynv6"
+
+msgid "dynv6 Token"
+msgstr "dynv6 토큰"
+
+msgid "SSH Key"
+msgstr "SSH 키"
+
+msgid "dynv6 SSH private key path"
+msgstr "dynv6 SSH 개인 키 경로"
+
+msgid "GoDaddy"
+msgstr "GoDaddy"
+
+msgid "Key / Secret"
+msgstr "키 / Secret"
+
+msgid "GoDaddy Key"
+msgstr "GoDaddy 키"
+
+msgid "GoDaddy Secret"
+msgstr "GoDaddy Secret"
+
+msgid "Amazon Route 53"
+msgstr "Amazon Route 53"
+
+msgid "Access Key"
+msgstr "액세스 키"
+
+msgid "AWS Access Key ID"
+msgstr "AWS 액세스 키 ID"
+
+msgid "AWS Secret Access Key"
+msgstr "AWS 보안 액세스 키"
+
+msgid "AWS DNS slow rate"
+msgstr "AWS DNS 느린 속도"
+
+msgid "Baidu Cloud DNS"
+msgstr "Baidu Cloud DNS"
+
+msgid "Baidu Access Key ID"
+msgstr "Baidu 액세스 키 ID"
+
+msgid "Baidu Secret Access Key"
+msgstr "Baidu 보안 액세스 키"
+
+msgid "Baidu API preference"
+msgstr "Baidu API 기본 설정"
+
+msgid "Baidu DNS view"
+msgstr "Baidu DNS 보기"
+
+msgid "Baidu DNS line"
+msgstr "Baidu DNS 회선"
+
+msgid "Azure DNS"
+msgstr "Azure DNS"
+
+msgid "Service Principal"
+msgstr "서비스 주체"
+
+msgid "Azure Subscription ID"
+msgstr "Azure 구독 ID"
+
+msgid "Azure Tenant ID"
+msgstr "Azure 테넌트 ID"
+
+msgid "Azure App ID"
+msgstr "Azure 앱 ID"
+
+msgid "Azure Client Secret"
+msgstr "Azure 클라이언트 Secret"
+
+msgid "Bearer Token"
+msgstr "Bearer 토큰"
+
+msgid "Azure Bearer Token"
+msgstr "Azure Bearer 토큰"
+
+msgid "Managed Identity"
+msgstr "관리형 ID"
+
+msgid "Use Azure Managed Identity"
+msgstr "Azure 관리형 ID 사용"
+
+msgid "ClouDNS"
+msgstr "ClouDNS"
+
+msgid "Regular Auth ID"
+msgstr "일반 Auth ID"
+
+msgid "ClouDNS Auth ID"
+msgstr "ClouDNS Auth ID"
+
+msgid "ClouDNS Auth Password"
+msgstr "ClouDNS Auth 비밀번호"
+
+msgid "Sub Auth ID"
+msgstr "하위 Auth ID"
+
+msgid "ClouDNS Sub Auth ID"
+msgstr "ClouDNS 하위 Auth ID"
+
+msgid "Hurricane Electric"
+msgstr "Hurricane Electric"
+
+msgid "Password"
+msgstr "비밀번호"
+
+msgid "HE Username"
+msgstr "HE 사용자 이름"
+
+msgid "HE Password"
+msgstr "HE 비밀번호"
+
+msgid "Huawei Cloud DNS"
+msgstr "Huawei Cloud DNS"
+
+msgid "Username / Password"
+msgstr "사용자 이름 / 비밀번호"
+
+msgid "Huawei Cloud Username"
+msgstr "Huawei Cloud 사용자 이름"
+
+msgid "Huawei Cloud Password"
+msgstr "Huawei Cloud 비밀번호"
+
+msgid "Huawei Cloud Domain Name"
+msgstr "Huawei Cloud DomainName"
+
+msgid "Huawei Cloud Region"
+msgstr "Huawei Cloud 리전"
+
+msgid "Gcore DNS"
+msgstr "Gcore DNS"
+
+msgid "Gcore API Key"
+msgstr "Gcore API 키"
+
+msgid "Namecheap"
+msgstr "Namecheap"
+
+msgid "API Key"
+msgstr "API 키"
+
+msgid "Namecheap Username"
+msgstr "Namecheap 사용자 이름"
+
+msgid "Namecheap API Key"
+msgstr "Namecheap API 키"
+
+msgid "Namecheap Source IP"
+msgstr "Namecheap 원본 IP"
+
+msgid "DNS.LA"
+msgstr "DNS.LA"
+
+msgid "ID / Secret"
+msgstr "ID / Secret"
+
+msgid "DNS.LA API ID"
+msgstr "DNS.LA API ID"
+
+msgid "DNS.LA API Secret"
+msgstr "DNS.LA API Secret"
+
+msgid "DNS.LA API Token"
+msgstr "DNS.LA API 토큰"
+
+msgid "Name.com"
+msgstr "Name.com"
+
+msgid "API Token"
+msgstr "API 토큰"
+
+msgid "Name.com Username"
+msgstr "Name.com 사용자 이름"
+
+msgid "Name.com API Token"
+msgstr "Name.com API 토큰"
+
+msgid "NameSilo"
+msgstr "NameSilo"
+
+msgid "NameSilo API Key"
+msgstr "NameSilo API 키"
+
+msgid "IBM NS1 Connect"
+msgstr "IBM NS1 Connect"
+
+msgid "NS1 API Key"
+msgstr "NS1 API 키"
+
+msgid "Porkbun"
+msgstr "Porkbun"
+
+msgid "Porkbun API Key"
+msgstr "Porkbun API 키"
+
+msgid "Porkbun Secret API Key"
+msgstr "Porkbun Secret API 키"
+
+msgid "Volcengine DNS"
+msgstr "Volcengine DNS"
+
+msgid "Volcengine Access Key ID"
+msgstr "Volcengine 액세스 키 ID"
+
+msgid "Volcengine Secret Access Key"
+msgstr "Volcengine 보안 액세스 키"
+
+msgid "Volcengine Session Token"
+msgstr "Volcengine 세션 토큰"
+
+msgid "Spaceship"
+msgstr "Spaceship"
+
+msgid "Spaceship API Key"
+msgstr "Spaceship API 키"
+
+msgid "Spaceship API Secret"
+msgstr "Spaceship API Secret"
+
+msgid "Spaceship root domain"
+msgstr "Spaceship 루트 도메인"
+
+msgid "Vercel"
+msgstr "Vercel"
+
+msgid "Vercel API Token"
+msgstr "Vercel API 토큰"
+
+msgid "Linode"
+msgstr "Linode"
+
+msgid "Linode API Key"
+msgstr "Linode API 키"
+
+msgid "DigitalOcean"
+msgstr "DigitalOcean"
+
+msgid "DigitalOcean API Token"
+msgstr "DigitalOcean API 토큰"
+
+msgid "Google Cloud DNS"
+msgstr "Google Cloud DNS"
+
+msgid "gcloud"
+msgstr "gcloud"
+
+msgid "gcloud active config"
+msgstr "gcloud 활성 구성"
+
+msgid "Zonomi"
+msgstr "Zonomi"
+
+msgid "Zonomi API Key"
+msgstr "Zonomi API 키"
+
+msgid "Invalid backend response"
+msgstr "잘못된 백엔드 응답"
+
+msgid "Unable to save config"
+msgstr "구성을 저장할 수 없습니다"
+
+msgid "Unable to create task"
+msgstr "작업을 만들 수 없습니다"
+
+msgid "Task Logs"
+msgstr "작업 로그"
+
+msgid "View task"
+msgstr "작업 보기"
+
+msgid "Refresh"
+msgstr "새로 고침"
+
+msgid "Task ID"
+msgstr "작업 ID"
+
+msgid "Operation"
+msgstr "작업"
+
+msgid "Stage"
+msgstr "단계"
+
+msgid "Exit"
+msgstr "종료 코드"
+
+msgid "No tasks found"
+msgstr "작업을 찾을 수 없습니다"
+
+msgid "Loading task"
+msgstr "작업 로드 중"
+
+msgid "Back to tasks"
+msgstr "작업 목록으로 돌아가기"
+
+msgid "acme.sh home"
+msgstr "acme.sh 홈"
+
+msgid "Core script"
+msgstr "코어 스크립트"
+
+msgid "Not installed"
+msgstr "설치되지 않음"
+
+msgid "Core tag"
+msgstr "코어 태그"
+
+msgid "Mode"
+msgstr "모드"
+
+msgid "Real"
+msgstr "실제"
+
+msgid "OpenSSL"
+msgstr "OpenSSL"
+
+msgid "Ready"
+msgstr "준비됨"
+
+msgid "Missing"
+msgstr "누락됨"
+
+msgid "View certificate"
+msgstr "인증서 보기"
+
+msgid "Renew"
+msgstr "갱신"
+
+msgid "Import history"
+msgstr "기록 가져오기"
+
+msgid "Key type"
+msgstr "키 유형"
+
+msgid "Primary"
+msgstr "기본"
+
+msgid "SAN"
+msgstr "SAN"
+
+msgid "Config"
+msgstr "구성"
+
+msgid "No certificates found"
+msgstr "인증서를 찾을 수 없습니다"
+
+msgid "Back to certificates"
+msgstr "인증서 목록으로 돌아가기"
+
+msgid "Field"
+msgstr "필드"
+
+msgid "Value"
+msgstr "값"
+
+msgid "No certificate details"
+msgstr "인증서 세부 정보 없음"
+
+msgid "Native variables"
+msgstr "네이티브 변수"
+
+msgid "Last action"
+msgstr "마지막 작업"
+
+msgid "Missing openssl. Install it first: apk add openssl-util, or opkg update && opkg install openssl-util."
+msgstr "openssl이 없습니다. 먼저 설치하십시오: apk add openssl-util 또는 opkg update && opkg install openssl-util."
+
+msgid "Missing downloader. Install curl or wget before installing acme.sh."
+msgstr "다운로더가 없습니다. acme.sh를 설치하기 전에 curl 또는 wget을 설치하십시오."
+
+msgid "Unable to create install task"
+msgstr "설치 작업을 만들 수 없습니다"
+
+msgid "Unable to create upgrade task"
+msgstr "업그레이드 작업을 만들 수 없습니다"
+
+msgid "acme.sh Core"
+msgstr "acme.sh 코어"
+
+msgid "Detect core"
+msgstr "코어 감지"
+
+msgid "Home"
+msgstr "홈"
+
+msgid "Downloader"
+msgstr "다운로더"
+
+msgid "Account email"
+msgstr "계정 이메일"
+
+msgid "acme.sh tag"
+msgstr "acme.sh 태그"
+
+msgid "Test mode"
+msgstr "테스트 모드"
+
+msgid "Install core"
+msgstr "코어 설치"
+
+msgid "Upgrade core"
+msgstr "코어 업그레이드"
+
+msgid "Core status"
+msgstr "코어 상태"
+
+msgid "Task"
+msgstr "작업"
+
+msgid "Unable to parse acme.sh Console status output"
+msgstr "acme.sh 콘솔 상태 출력을 해석할 수 없습니다"
+
+msgid "Importing acme.sh history"
+msgstr "acme.sh 기록을 가져오는 중"
+
+msgid "Unable to create import task"
+msgstr "가져오기 작업을 만들 수 없습니다"
+
+msgid "Issue certificate"
+msgstr "인증서 발급"
+
+msgid "Backend"
+msgstr "백엔드"
+
+msgid "Error"
+msgstr "오류"
+
+msgid "No certificates found in acme.sh home."
+msgstr "acme.sh 홈에서 인증서를 찾을 수 없습니다."
+
+msgid "Unable to create deploy test task"
+msgstr "배포 테스트 작업을 만들 수 없습니다"
+
+msgid "Generating SSH key"
+msgstr "SSH 키 생성 중"
+
+msgid "Unable to generate SSH key"
+msgstr "SSH 키를 생성할 수 없습니다"
+
+msgid "Public key copied"
+msgstr "공개 키를 복사했습니다"
+
+msgid "Unable to create SSH test task"
+msgstr "SSH 테스트 작업을 만들 수 없습니다"
+
+msgid "Deploy & Post-Action"
+msgstr "배포 및 후속 작업"
+
+msgid "Cert file"
+msgstr "인증서 파일"
+
+msgid "CA file"
+msgstr "CA 파일"
+
+msgid "Preview install-cert"
+msgstr "install-cert 미리 보기"
+
+msgid "Run deploy test"
+msgstr "배포 테스트 실행"
+
+msgid "Target host"
+msgstr "대상 호스트"
+
+msgid "Private key path"
+msgstr "개인 키 경로"
+
+msgid "Remote key path"
+msgstr "원격 개인 키 경로"
+
+msgid "Remote fullchain path"
+msgstr "원격 전체 체인 경로"
+
+msgid "Remote reload command"
+msgstr "원격 다시 로드 명령"
+
+msgid "Generate SSH key"
+msgstr "SSH 키 생성"
+
+msgid "Copy public key"
+msgstr "공개 키 복사"
+
+msgid "Preview SSH deploy"
+msgstr "SSH 배포 미리 보기"
+
+msgid "Test SSH connection"
+msgstr "SSH 연결 테스트"
+
+msgid "Public key"
+msgstr "공개 키"
+
+msgid "Custom dns_xxx"
+msgstr "사용자 지정 dns_xxx"
+
+msgid "Issue flow"
+msgstr "발급 흐름"
+
+msgid "Compose"
+msgstr "구성"
+
+msgid "Preview"
+msgstr "미리 보기"
+
+msgid "Result"
+msgstr "결과"
+
+msgid "Unable to create issue task"
+msgstr "발급 작업을 만들 수 없습니다"
+
+msgid "Issue task created"
+msgstr "발급 작업을 만들었습니다"
+
+msgid "Issue Certificate"
+msgstr "인증서 발급"
+
+msgid "Custom ACME server"
+msgstr "사용자 지정 ACME 서버"
+
+msgid "Validation method"
+msgstr "검증 방법"
+
+msgid "DNS credentials"
+msgstr "DNS 자격 증명"
+
+msgid "Webroot"
+msgstr "웹 루트"
+
+msgid "Listen port"
+msgstr "수신 포트"
+
+msgid "Preview command"
+msgstr "명령 미리 보기"
+
+msgid "Command preview"
+msgstr "명령 미리 보기"
+
+msgid "Custom"
+msgstr "사용자 지정"
+
+msgid "CA"
+msgstr "CA"
+
+msgid "Edit account"
+msgstr "계정 편집"
+
+msgid "new"
+msgstr "새로 만들기"
+
+msgid "secret"
+msgstr "비밀"
+
+msgid "Edit issue profile"
+msgstr "발급 프로필 편집"
+
+msgid "Account profile"
+msgstr "계정 프로필"
+
+msgid "Deploy profile"
+msgstr "배포 프로필"
+
+msgid "Edit deploy profile"
+msgstr "배포 프로필 편집"
+
+msgid "Settings & Diagnostics"
+msgstr "설정 및 진단"
+
+msgid "Package manager"
+msgstr "패키지 관리자"
+
+msgid "Account config"
+msgstr "계정 구성"
+
+msgid "Found"
+msgstr "찾음"
+
+msgid "Detect runtime"
+msgstr "런타임 감지"
+
+msgid "Runtime JSON"
+msgstr "런타임 JSON"
+
+msgid "Missing deploy fields"
+msgstr "배포 필드 누락"
+
+msgid "Account email is required for real mode"
+msgstr "실제 모드에는 계정 이메일이 필요합니다"
+
+msgid "Inherit default"
+msgstr "기본값 상속"
+
+msgid "Override"
+msgstr "재정의"
+
+msgid "Effective configuration"
+msgstr "적용된 구성"
+
+msgid "Account email source"
+msgstr "계정 이메일 소스"
+
+msgid "Resolved account email"
+msgstr "확인된 계정 이메일"
+
+msgid "Resolved test mode"
+msgstr "확인된 테스트 모드"
+
+msgid "Resolved deploy profile"
+msgstr "확인된 배포 프로필"
+
+msgid "Resolved target"
+msgstr "확인된 대상"
+
+msgid "Resolved source"
+msgstr "확인된 소스"
+
+msgid "Resolved reload command"
+msgstr "확인된 다시 로드 명령"
+
+msgid "Core version"
+msgstr "코어 버전"
+
+msgid "Unknown"
+msgstr "알 수 없음"
+
+msgid "Current core version"
+msgstr "현재 코어 버전"
+
+msgid "Select deploy profile"
+msgstr "배포 프로필 선택"
+
+msgid "AWS Session Token"
+msgstr "AWS 세션 토큰"
+
+msgid "Certificate key type"
+msgstr "인증서 키 유형"
+
+msgid "Global test mode"
+msgstr "전역 테스트 모드"
+
+msgid "disabled"
+msgstr "비활성화됨"
+
+msgid "enabled"
+msgstr "활성화됨"
+
+msgid "Invalid JSON"
+msgstr "잘못된 JSON"
+
+msgid "Configuration JSON must be an object"
+msgstr "구성 JSON은 객체여야 합니다"
+
+msgid "Configuration global section must be an object"
+msgstr "구성의 global 섹션은 객체여야 합니다"
+
+msgid "Account profiles must be an array"
+msgstr "계정 프로필은 배열이어야 합니다"
+
+msgid "Issue profiles must be an array"
+msgstr "발급 프로필은 배열이어야 합니다"
+
+msgid "Deploy profiles must be an array"
+msgstr "배포 프로필은 배열이어야 합니다"
+
+msgid "Paste configuration JSON"
+msgstr "구성 JSON 붙여넣기"
+
+msgid "No import selected"
+msgstr "선택한 가져오기 항목 없음"
+
+msgid "Imported configuration summary"
+msgstr "가져온 구성 요약"
+
+msgid "Unable to read selected file"
+msgstr "선택한 파일을 읽을 수 없습니다"
+
+msgid "Configuration migration"
+msgstr "구성 마이그레이션"
+
+msgid "This export contains sensitive DNS credentials and certificate material."
+msgstr "이 내보내기에는 민감한 DNS 자격 증명과 인증서 자료가 포함됩니다."
+
+msgid "Export configuration"
+msgstr "구성 내보내기"
+
+msgid "Download a full migration JSON for server changes, reinstallations, or version upgrades."
+msgstr "서버 변경, 재설치 또는 버전 업그레이드를 위해 전체 마이그레이션 JSON을 다운로드하십시오."
+
+msgid "Import configuration"
+msgstr "구성 가져오기"
+
+msgid "Configuration file"
+msgstr "구성 파일"
+
+msgid "Preview import"
+msgstr "가져오기 미리 보기"
+
+msgid "Configuration imported"
+msgstr "구성을 가져왔습니다"
+
+msgid "Overwrite current configuration"
+msgstr "현재 구성 덮어쓰기"
+
+msgid "The SSH private key is in OpenSSH format, but this router is using Dropbear. Convert it temporarily and retry the deployment."
+msgstr "SSH 개인 키는 OpenSSH 형식이지만 이 라우터는 Dropbear를 사용합니다. 임시로 변환한 후 배포를 다시 시도하십시오."
+
+msgid "Convert SSH key and retry deployment?"
+msgstr "SSH 키를 변환하고 배포를 다시 시도하시겠습니까?"
+
+msgid "The converted key will be used only for this deployment and deleted afterwards."
+msgstr "변환된 키는 이번 배포에만 사용되며 이후 삭제됩니다."
+
+msgid "Remote sudo requires passwordless sudo. Configure NOPASSWD for the deploy user or deploy as root."
+msgstr "원격 sudo에는 비밀번호 없는 sudo가 필요합니다. 배포 사용자에 NOPASSWD를 설정하거나 root로 배포하십시오."
+
+msgid "The plugin will execute the operation strictly according to the parameters above. By continuing, you confirm that you have reviewed and accept the consequences of certificate issuance quotas, remote file overwrite, service reload, and target system configuration."
+msgstr "플러그인은 위 매개 변수에 따라 엄격히 작업을 실행합니다. 계속하면 인증서 발급 할당량, 원격 파일 덮어쓰기, 서비스 다시 로드 및 대상 시스템 구성의 결과를 검토하고 수락했음을 확인합니다."
+
+msgid "Risk authorization required"
+msgstr "위험 작업 승인 필요"
+
+msgid "Review the exact material operation before continuing."
+msgstr "계속하기 전에 실제 작업 내용을 검토하십시오."
+
+msgid "Run once"
+msgstr "한 번 실행"
+
+msgid "Run and remember"
+msgstr "실행하고 승인 기억"
+
+msgid "Authorized"
+msgstr "승인됨"
+
+msgid "Authorization records"
+msgstr "승인 기록"
+
+msgid "Revoke"
+msgstr "취소"
+
+msgid "Revoke all"
+msgstr "모두 취소"
+
+msgid "Subject"
+msgstr "대상"
+
+msgid "Scope"
+msgstr "범위"
+
+msgid "Granted"
+msgstr "승인 일시"
+
+msgid "Last used"
+msgstr "마지막 사용"
+
+msgid "Uses"
+msgstr "사용 횟수"
+
+msgid "Actions"
+msgstr "작업"
+
+msgid "No authorization records"
+msgstr "승인 기록 없음"
+
+msgid "SSH host key changed"
+msgstr "SSH 호스트 키가 변경됨"
+
+msgid "The SSH host identity changed. Deployment is blocked. Verify the host outside this operation before replacing the pinned identity."
+msgstr "SSH 호스트 ID가 변경되었습니다. 배포가 차단되었습니다. 고정된 ID를 교체하기 전에 이 작업 외부에서 호스트를 확인하십시오."
+
+msgid "Confirm SSH host identity"
+msgstr "SSH 호스트 ID 확인"
+
+msgid "Key algorithm"
+msgstr "키 알고리즘"
+
+msgid "Fingerprint"
+msgstr "지문"
+
+msgid "Confirm and pin"
+msgstr "확인 및 고정"
+
+msgid "Revoke certificate"
+msgstr "인증서 폐기"
+
+msgid "Remove certificate"
+msgstr "인증서 제거"
+
+msgid "Unable to delete profile"
+msgstr "프로필을 삭제할 수 없습니다"
+
+msgid "SAN list"
+msgstr "SAN 목록"
+
+msgid "DNS challenge alias (optional)"
+msgstr "DNS 챌린지 별칭(선택 사항)"
+
+msgid "DNS propagation delay (seconds)"
+msgstr "DNS 전파 지연(초)"
+
+msgid "Test this core action"
+msgstr "이 코어 작업 테스트"
+
+msgid "Explicit profile policy"
+msgstr "명시적 프로필 정책"
+
+msgid "Cancel"
+msgstr "취소"
+
+msgid "Close"
+msgstr "닫기"
+
+msgid "Host"
+msgstr "호스트"
+
+msgid "Port"
+msgstr "포트"
+
+msgid "Unable to load configuration"
+msgstr "구성을 로드할 수 없습니다"
+
+msgid "Saving defaults"
+msgstr "기본값 저장 중"

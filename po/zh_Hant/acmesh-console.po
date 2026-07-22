@@ -1,0 +1,1210 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-acmesh-console\n"
+"PO-Revision-Date: 2026-07-23 00:00+0800\n"
+"Last-Translator: acmesh-console maintainers\n"
+"Language-Team: Chinese (Traditional)\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "acme.sh Console"
+msgstr "acme.sh 控制台"
+
+msgid "Certificates"
+msgstr "憑證"
+
+msgid "Operations"
+msgstr "操作"
+
+msgid "Logs"
+msgstr "日誌"
+
+msgid "Core & Defaults"
+msgstr "核心與預設值"
+
+msgid "Default account email"
+msgstr "預設帳戶電子郵件"
+
+msgid "Global Test Mode"
+msgstr "全域測試模式"
+
+msgid "Enable by default"
+msgstr "預設啟用"
+
+msgid "ACME home"
+msgstr "ACME 主目錄"
+
+msgid "Core tag candidates"
+msgstr "核心版本候選"
+
+msgid "Save defaults"
+msgstr "儲存預設值"
+
+msgid "Install selected tag"
+msgstr "安裝選取版本"
+
+msgid "Upgrade selected tag"
+msgstr "升級到選取版本"
+
+msgid "Installed"
+msgstr "已安裝"
+
+msgid "Script"
+msgstr "指令碼"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "Accounts"
+msgstr "帳戶"
+
+msgid "Account profiles"
+msgstr "帳戶設定"
+
+msgid "Issue Profiles"
+msgstr "簽發設定"
+
+msgid "Deploy Profiles"
+msgstr "部署設定"
+
+msgid "Issue profiles"
+msgstr "簽發設定"
+
+msgid "Deploy profiles"
+msgstr "部署設定"
+
+msgid "Name"
+msgstr "名稱"
+
+msgid "Domain"
+msgstr "網域"
+
+msgid "Account"
+msgstr "帳戶"
+
+msgid "Deploy"
+msgstr "部署"
+
+msgid "Validation"
+msgstr "驗證方式"
+
+msgid "Status"
+msgstr "狀態"
+
+msgid "Type"
+msgstr "類型"
+
+msgid "Certificate source"
+msgstr "憑證來源"
+
+msgid "Target"
+msgstr "目標"
+
+msgid "Reload command"
+msgstr "重新載入指令"
+
+msgid "Run"
+msgstr "執行"
+
+msgid "DNS Test"
+msgstr "DNS 測試"
+
+msgid "Test"
+msgstr "測試"
+
+msgid "Edit"
+msgstr "編輯"
+
+msgid "Delete"
+msgstr "刪除"
+
+msgid "Add"
+msgstr "新增"
+
+msgid "Ignore"
+msgstr "忽略"
+
+msgid "Save account"
+msgstr "儲存帳戶"
+
+msgid "Save issue profile"
+msgstr "儲存簽發設定"
+
+msgid "Save deploy profile"
+msgstr "儲存部署設定"
+
+msgid "Task output"
+msgstr "任務輸出"
+
+msgid "Summary"
+msgstr "摘要"
+
+msgid "Creating task"
+msgstr "正在建立任務"
+
+msgid "Issue succeeded; starting deploy profile"
+msgstr "憑證簽發成功，開始執行部署設定"
+
+msgid "The CA rejected the account email. Replace example.com with a real mailbox in the account profile or defaults."
+msgstr "CA 拒絕了帳戶電子郵件。請在帳戶設定或預設值中把 example.com 換成正式電子郵件。"
+
+msgid "The DNS provider rejected the TXT record. Check that the domain belongs to this DNS account and that the selected DNS API credentials match the provider."
+msgstr "DNS 供應商拒絕了 TXT 紀錄。請檢查網域是否屬於該 DNS 帳戶，並確認所選 DNS API 憑證與供應商匹配。"
+
+msgid "The DNS provider failed to create the ACME TXT record. Recheck DNS API credentials, zone ownership, and provider-specific permissions."
+msgstr "DNS 供應商未能建立 ACME TXT 紀錄。請複查 DNS API 憑證、網域歸屬和供應商權限。"
+
+msgid "OpenSSL is missing on the router. Install openssl-util before installing or upgrading acme.sh."
+msgstr "路由器缺少 OpenSSL。安裝或升級 acme.sh 前請先安裝 openssl-util。"
+
+msgid "acme.sh is not installed in the configured ACME home. Install the selected core tag first."
+msgstr "設定的 ACME 主目錄中沒有安裝 acme.sh。請先安裝選取的核心版本。"
+
+msgid "The selected CA value is not supported by the backend. Choose a known CA profile or a valid ACME directory URL."
+msgstr "後端不支持目前 CA 值。請選擇已知 CA 設定或有效的 ACME 目錄 URL。"
+
+msgid "No entries"
+msgstr "目前沒有項目"
+
+msgid "No account profiles"
+msgstr "目前沒有帳戶設定"
+
+msgid "No issue profiles"
+msgstr "目前沒有簽發設定"
+
+msgid "Imported"
+msgstr "已匯入"
+
+msgid "Imported issue profiles"
+msgstr "已匯入簽發設定"
+
+msgid "No deploy profiles"
+msgstr "目前沒有部署設定"
+
+msgid "No deploy profile"
+msgstr "不使用部署設定"
+
+msgid "No account profile"
+msgstr "目前沒有帳戶設定"
+
+msgid "Email overlay"
+msgstr "電子郵件覆寫"
+
+msgid "Effective email"
+msgstr "實際電子郵件"
+
+msgid "inherit default"
+msgstr "繼承預設值"
+
+msgid "CA / environment"
+msgstr "CA / 環境"
+
+msgid "Account email overlay"
+msgstr "帳戶電子郵件覆寫"
+
+msgid "Test mode policy"
+msgstr "測試模式原則"
+
+msgid "Inherit Global Test Mode"
+msgstr "繼承全域測試模式"
+
+msgid "Always Test Mode"
+msgstr "始終測試模式"
+
+msgid "Always Real Mode"
+msgstr "始終正式模式"
+
+msgid "DNS provider"
+msgstr "DNS 供應商"
+
+msgid "Custom DNS API"
+msgstr "自定义 DNS API"
+
+msgid "Official DNS API filter"
+msgstr "官方 DNS API 筛選"
+
+msgid "Official DNS API candidates"
+msgstr "官方 DNS API 候選"
+
+msgid "Select official DNS API"
+msgstr "選擇官方 DNS API"
+
+msgid "Credential mode"
+msgstr "憑證模式"
+
+msgid "Custom credential env"
+msgstr "自定义憑證變數"
+
+msgid "Custom credential value"
+msgstr "自定义憑證值"
+
+msgid "Custom credentials"
+msgstr "自定义憑證"
+
+msgid "Missing DNS credentials"
+msgstr "缺少 DNS 憑證"
+
+msgid "Domain is required"
+msgstr "必須填寫網域"
+
+msgid "Issued certificate"
+msgstr "已簽發憑證"
+
+msgid "Local certificate files"
+msgstr "本機憑證檔案"
+
+msgid "Paste PEM content"
+msgstr "貼上 PEM 內容"
+
+msgid "Use issued certificate"
+msgstr "使用已簽發憑證"
+
+msgid "Use local certificate files"
+msgstr "使用本機憑證檔案"
+
+msgid "Certificate domain"
+msgstr "憑證網域"
+
+msgid "Source key file"
+msgstr "源私密金鑰檔案"
+
+msgid "Source fullchain file"
+msgstr "源完整憑證鏈檔案"
+
+msgid "Private key PEM"
+msgstr "私密金鑰 PEM"
+
+msgid "Fullchain PEM"
+msgstr "完整憑證鏈 PEM"
+
+msgid "SSH host"
+msgstr "SSH 主機"
+
+msgid "SSH user"
+msgstr "SSH 使用者"
+
+msgid "SSH port"
+msgstr "SSH 端口"
+
+msgid "SSH private key"
+msgstr "SSH 私密金鑰"
+
+msgid "Key file"
+msgstr "私密金鑰檔案"
+
+msgid "Fullchain file"
+msgstr "完整憑證鏈檔案"
+
+msgid "Local key file"
+msgstr "本機私密金鑰檔案"
+
+msgid "Local fullchain file"
+msgstr "本機完整憑證鏈檔案"
+
+msgid "Remote key file"
+msgstr "遠端私密金鑰檔案"
+
+msgid "Remote fullchain file"
+msgstr "遠端完整憑證鏈檔案"
+
+msgid "Local install"
+msgstr "本機安裝"
+
+msgid "Remote SSH"
+msgstr "遠端 SSH"
+
+msgid "Cloudflare"
+msgstr "Cloudflare"
+
+msgid "Token"
+msgstr "令牌"
+
+msgid "Global Key"
+msgstr "全域金鑰"
+
+msgid "Cloudflare API Token"
+msgstr "Cloudflare API 令牌"
+
+msgid "Cloudflare Zone ID"
+msgstr "Cloudflare 區域 ID"
+
+msgid "Cloudflare Account ID"
+msgstr "Cloudflare 帳戶 ID"
+
+msgid "Cloudflare Email"
+msgstr "Cloudflare 電子郵件"
+
+msgid "Cloudflare Global API Key"
+msgstr "Cloudflare 全域 API 金鑰"
+
+msgid "Aliyun"
+msgstr "阿里云"
+
+msgid "AccessKey"
+msgstr "AccessKey"
+
+msgid "Aliyun AccessKey ID"
+msgstr "阿里云 AccessKey ID"
+
+msgid "Aliyun AccessKey Secret"
+msgstr "阿里云 AccessKey Secret"
+
+msgid "DNSPod.cn"
+msgstr "DNSPod.cn"
+
+msgid "DNSPod ID"
+msgstr "DNSPod ID"
+
+msgid "DNSPod Token"
+msgstr "DNSPod 令牌"
+
+msgid "Tencent Cloud DNSPod"
+msgstr "騰訊云 DNSPod"
+
+msgid "SecretId / SecretKey"
+msgstr "SecretId / SecretKey"
+
+msgid "Tencent SecretId"
+msgstr "騰訊云 SecretId"
+
+msgid "Tencent SecretKey"
+msgstr "騰訊云 SecretKey"
+
+msgid "DuckDNS"
+msgstr "DuckDNS"
+
+msgid "DuckDNS Token"
+msgstr "DuckDNS 令牌"
+
+msgid "dynv6"
+msgstr "dynv6"
+
+msgid "dynv6 Token"
+msgstr "dynv6 令牌"
+
+msgid "SSH Key"
+msgstr "SSH 金鑰"
+
+msgid "dynv6 SSH private key path"
+msgstr "dynv6 SSH 私密金鑰路徑"
+
+msgid "GoDaddy"
+msgstr "GoDaddy"
+
+msgid "Key / Secret"
+msgstr "Key / Secret"
+
+msgid "GoDaddy Key"
+msgstr "GoDaddy Key"
+
+msgid "GoDaddy Secret"
+msgstr "GoDaddy Secret"
+
+msgid "Amazon Route 53"
+msgstr "Amazon Route 53"
+
+msgid "Access Key"
+msgstr "Access Key"
+
+msgid "AWS Access Key ID"
+msgstr "AWS Access Key ID"
+
+msgid "AWS Secret Access Key"
+msgstr "AWS Secret Access Key"
+
+msgid "AWS DNS slow rate"
+msgstr "AWS DNS 慢速模式"
+
+msgid "Baidu Cloud DNS"
+msgstr "百度云 DNS"
+
+msgid "Baidu Access Key ID"
+msgstr "百度云 Access Key ID"
+
+msgid "Baidu Secret Access Key"
+msgstr "百度云 Secret Access Key"
+
+msgid "Baidu API preference"
+msgstr "百度云 API 偏好"
+
+msgid "Baidu DNS view"
+msgstr "百度云 DNS 線路視圖"
+
+msgid "Baidu DNS line"
+msgstr "百度云 DNS 線路"
+
+msgid "Azure DNS"
+msgstr "Azure DNS"
+
+msgid "Service Principal"
+msgstr "服務主體"
+
+msgid "Azure Subscription ID"
+msgstr "Azure 訂閱 ID"
+
+msgid "Azure Tenant ID"
+msgstr "Azure 租戶 ID"
+
+msgid "Azure App ID"
+msgstr "Azure 應用 ID"
+
+msgid "Azure Client Secret"
+msgstr "Azure 客戶端金鑰"
+
+msgid "Bearer Token"
+msgstr "Bearer 令牌"
+
+msgid "Azure Bearer Token"
+msgstr "Azure Bearer 令牌"
+
+msgid "Managed Identity"
+msgstr "托管身份"
+
+msgid "Use Azure Managed Identity"
+msgstr "使用 Azure 托管身份"
+
+msgid "ClouDNS"
+msgstr "ClouDNS"
+
+msgid "Regular Auth ID"
+msgstr "一般 Auth ID"
+
+msgid "ClouDNS Auth ID"
+msgstr "ClouDNS Auth ID"
+
+msgid "ClouDNS Auth Password"
+msgstr "ClouDNS Auth 密碼"
+
+msgid "Sub Auth ID"
+msgstr "子帳戶 Auth ID"
+
+msgid "ClouDNS Sub Auth ID"
+msgstr "ClouDNS 子帳戶 Auth ID"
+
+msgid "Hurricane Electric"
+msgstr "Hurricane Electric"
+
+msgid "Password"
+msgstr "密碼"
+
+msgid "HE Username"
+msgstr "HE 使用者名"
+
+msgid "HE Password"
+msgstr "HE 密碼"
+
+msgid "Huawei Cloud DNS"
+msgstr "華為云 DNS"
+
+msgid "Username / Password"
+msgstr "使用者名 / 密碼"
+
+msgid "Huawei Cloud Username"
+msgstr "華為云使用者名"
+
+msgid "Huawei Cloud Password"
+msgstr "華為云密碼"
+
+msgid "Huawei Cloud Domain Name"
+msgstr "華為云 DomainName"
+
+msgid "Huawei Cloud Region"
+msgstr "華為云區域"
+
+msgid "Gcore DNS"
+msgstr "Gcore DNS"
+
+msgid "Gcore API Key"
+msgstr "Gcore API Key"
+
+msgid "Namecheap"
+msgstr "Namecheap"
+
+msgid "API Key"
+msgstr "API Key"
+
+msgid "Namecheap Username"
+msgstr "Namecheap 使用者名"
+
+msgid "Namecheap API Key"
+msgstr "Namecheap API Key"
+
+msgid "Namecheap Source IP"
+msgstr "Namecheap 來源 IP"
+
+msgid "DNS.LA"
+msgstr "DNS.LA"
+
+msgid "ID / Secret"
+msgstr "ID / Secret"
+
+msgid "DNS.LA API ID"
+msgstr "DNS.LA API ID"
+
+msgid "DNS.LA API Secret"
+msgstr "DNS.LA API Secret"
+
+msgid "DNS.LA API Token"
+msgstr "DNS.LA API Token"
+
+msgid "Name.com"
+msgstr "Name.com"
+
+msgid "API Token"
+msgstr "API Token"
+
+msgid "Name.com Username"
+msgstr "Name.com 使用者名"
+
+msgid "Name.com API Token"
+msgstr "Name.com API Token"
+
+msgid "NameSilo"
+msgstr "NameSilo"
+
+msgid "NameSilo API Key"
+msgstr "NameSilo API Key"
+
+msgid "IBM NS1 Connect"
+msgstr "IBM NS1 Connect"
+
+msgid "NS1 API Key"
+msgstr "NS1 API Key"
+
+msgid "Porkbun"
+msgstr "Porkbun"
+
+msgid "Porkbun API Key"
+msgstr "Porkbun API Key"
+
+msgid "Porkbun Secret API Key"
+msgstr "Porkbun Secret API Key"
+
+msgid "Volcengine DNS"
+msgstr "火山引擎 DNS"
+
+msgid "Volcengine Access Key ID"
+msgstr "火山引擎 Access Key ID"
+
+msgid "Volcengine Secret Access Key"
+msgstr "火山引擎 Secret Access Key"
+
+msgid "Volcengine Session Token"
+msgstr "火山引擎 Session Token"
+
+msgid "Spaceship"
+msgstr "Spaceship"
+
+msgid "Spaceship API Key"
+msgstr "Spaceship API Key"
+
+msgid "Spaceship API Secret"
+msgstr "Spaceship API Secret"
+
+msgid "Spaceship root domain"
+msgstr "Spaceship 根網域"
+
+msgid "Vercel"
+msgstr "Vercel"
+
+msgid "Vercel API Token"
+msgstr "Vercel API Token"
+
+msgid "Linode"
+msgstr "Linode"
+
+msgid "Linode API Key"
+msgstr "Linode API Key"
+
+msgid "DigitalOcean"
+msgstr "DigitalOcean"
+
+msgid "DigitalOcean API Token"
+msgstr "DigitalOcean API 令牌"
+
+msgid "Google Cloud DNS"
+msgstr "Google Cloud DNS"
+
+msgid "gcloud"
+msgstr "gcloud"
+
+msgid "gcloud active config"
+msgstr "gcloud 目前設定"
+
+msgid "Zonomi"
+msgstr "Zonomi"
+
+msgid "Zonomi API Key"
+msgstr "Zonomi API Key"
+
+msgid "Invalid backend response"
+msgstr "後端回應無效"
+
+msgid "Unable to save config"
+msgstr "無法儲存設定"
+
+msgid "Unable to create task"
+msgstr "無法建立任務"
+
+msgid "Task Logs"
+msgstr "任務日誌"
+
+msgid "View task"
+msgstr "查看任務"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Task ID"
+msgstr "任務 ID"
+
+msgid "Operation"
+msgstr "操作"
+
+msgid "Stage"
+msgstr "階段"
+
+msgid "Exit"
+msgstr "退出碼"
+
+msgid "No tasks found"
+msgstr "找不到任務"
+
+msgid "Loading task"
+msgstr "正在載入任務"
+
+msgid "Back to tasks"
+msgstr "返回任務列表"
+
+msgid "acme.sh home"
+msgstr "acme.sh 主目錄"
+
+msgid "Core script"
+msgstr "核心指令碼"
+
+msgid "Not installed"
+msgstr "未安裝"
+
+msgid "Core tag"
+msgstr "核心版本"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Real"
+msgstr "正式"
+
+msgid "OpenSSL"
+msgstr "OpenSSL"
+
+msgid "Ready"
+msgstr "就緒"
+
+msgid "Missing"
+msgstr "缺失"
+
+msgid "View certificate"
+msgstr "查看憑證"
+
+msgid "Renew"
+msgstr "續期"
+
+msgid "Import history"
+msgstr "匯入歷史"
+
+msgid "Key type"
+msgstr "金鑰類型"
+
+msgid "Primary"
+msgstr "主網域"
+
+msgid "SAN"
+msgstr "備用名稱"
+
+msgid "Config"
+msgstr "設定"
+
+msgid "No certificates found"
+msgstr "找不到憑證"
+
+msgid "Back to certificates"
+msgstr "返回憑證列表"
+
+msgid "Field"
+msgstr "字段"
+
+msgid "Value"
+msgstr "值"
+
+msgid "No certificate details"
+msgstr "沒有憑證詳細資料"
+
+msgid "Native variables"
+msgstr "原生變數"
+
+msgid "Last action"
+msgstr "最近操作"
+
+msgid "Missing openssl. Install it first: apk add openssl-util, or opkg update && opkg install openssl-util."
+msgstr "缺少 openssl。請先安裝：apk add openssl-util，或 opkg update && opkg install openssl-util。"
+
+msgid "Missing downloader. Install curl or wget before installing acme.sh."
+msgstr "缺少下載工具。安裝 acme.sh 前請先安裝 curl 或 wget。"
+
+msgid "Unable to create install task"
+msgstr "無法建立安裝任務"
+
+msgid "Unable to create upgrade task"
+msgstr "無法建立升級任務"
+
+msgid "acme.sh Core"
+msgstr "acme.sh 核心"
+
+msgid "Detect core"
+msgstr "偵測核心"
+
+msgid "Home"
+msgstr "主目錄"
+
+msgid "Downloader"
+msgstr "下載工具"
+
+msgid "Account email"
+msgstr "帳戶電子郵件"
+
+msgid "acme.sh tag"
+msgstr "acme.sh 標籤"
+
+msgid "Test mode"
+msgstr "測試模式"
+
+msgid "Install core"
+msgstr "安裝核心"
+
+msgid "Upgrade core"
+msgstr "升級核心"
+
+msgid "Core status"
+msgstr "核心狀態"
+
+msgid "Task"
+msgstr "任務"
+
+msgid "Unable to parse acme.sh Console status output"
+msgstr "無法解析 acme.sh Console 狀態輸出"
+
+msgid "Importing acme.sh history"
+msgstr "正在匯入 acme.sh 歷史"
+
+msgid "Unable to create import task"
+msgstr "無法建立匯入任務"
+
+msgid "Issue certificate"
+msgstr "簽發憑證"
+
+msgid "Backend"
+msgstr "後端"
+
+msgid "Error"
+msgstr "錯誤"
+
+msgid "No certificates found in acme.sh home."
+msgstr "acme.sh 主目錄中沒有找到憑證。"
+
+msgid "Unable to create deploy test task"
+msgstr "無法建立部署測試任務"
+
+msgid "Generating SSH key"
+msgstr "正在生成 SSH 金鑰"
+
+msgid "Unable to generate SSH key"
+msgstr "無法生成 SSH 金鑰"
+
+msgid "Public key copied"
+msgstr "公開金鑰已複製"
+
+msgid "Unable to create SSH test task"
+msgstr "無法建立 SSH 測試任務"
+
+msgid "Deploy & Post-Action"
+msgstr "部署與後置動作"
+
+msgid "Cert file"
+msgstr "憑證檔案"
+
+msgid "CA file"
+msgstr "CA 檔案"
+
+msgid "Preview install-cert"
+msgstr "預覽 install-cert"
+
+msgid "Run deploy test"
+msgstr "執行部署測試"
+
+msgid "Target host"
+msgstr "目標主機"
+
+msgid "Private key path"
+msgstr "私密金鑰路徑"
+
+msgid "Remote key path"
+msgstr "遠端私密金鑰路徑"
+
+msgid "Remote fullchain path"
+msgstr "遠端 fullchain 路徑"
+
+msgid "Remote reload command"
+msgstr "遠端重新載入指令"
+
+msgid "Generate SSH key"
+msgstr "生成 SSH 金鑰"
+
+msgid "Copy public key"
+msgstr "複製公開金鑰"
+
+msgid "Preview SSH deploy"
+msgstr "預覽 SSH 部署"
+
+msgid "Test SSH connection"
+msgstr "測試 SSH 連接"
+
+msgid "Public key"
+msgstr "公開金鑰"
+
+msgid "Custom dns_xxx"
+msgstr "自定义 dns_xxx"
+
+msgid "Issue flow"
+msgstr "簽發流程"
+
+msgid "Compose"
+msgstr "编排"
+
+msgid "Preview"
+msgstr "預覽"
+
+msgid "Result"
+msgstr "結果"
+
+msgid "Unable to create issue task"
+msgstr "無法建立簽發任務"
+
+msgid "Issue task created"
+msgstr "簽發任務已建立"
+
+msgid "Issue Certificate"
+msgstr "簽發憑證"
+
+msgid "Custom ACME server"
+msgstr "自定义 ACME 伺服器"
+
+msgid "Validation method"
+msgstr "驗證方式"
+
+msgid "DNS credentials"
+msgstr "DNS 憑證"
+
+msgid "Webroot"
+msgstr "Webroot 目錄"
+
+msgid "Listen port"
+msgstr "監聽端口"
+
+msgid "Preview command"
+msgstr "預覽指令"
+
+msgid "Command preview"
+msgstr "指令預覽"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "CA"
+msgstr "CA"
+
+msgid "Edit account"
+msgstr "編輯帳戶"
+
+msgid "new"
+msgstr "新建"
+
+msgid "secret"
+msgstr "金鑰"
+
+msgid "Edit issue profile"
+msgstr "編輯簽發設定"
+
+msgid "Account profile"
+msgstr "帳戶設定"
+
+msgid "Deploy profile"
+msgstr "部署設定"
+
+msgid "Edit deploy profile"
+msgstr "編輯部署設定"
+
+msgid "Settings & Diagnostics"
+msgstr "設置與診斷"
+
+msgid "Package manager"
+msgstr "包管理器"
+
+msgid "Account config"
+msgstr "帳戶設定檔案"
+
+msgid "Found"
+msgstr "已找到"
+
+msgid "Detect runtime"
+msgstr "偵測執行環境"
+
+msgid "Runtime JSON"
+msgstr "執行環境 JSON"
+
+msgid "Missing deploy fields"
+msgstr "缺少部署字段"
+
+msgid "Account email is required for real mode"
+msgstr "正式模式必須填寫帳戶電子郵件"
+
+msgid "Inherit default"
+msgstr "繼承預設"
+
+msgid "Override"
+msgstr "覆寫"
+
+msgid "Effective configuration"
+msgstr "有效設定"
+
+msgid "Account email source"
+msgstr "帳戶電子郵件來源"
+
+msgid "Resolved account email"
+msgstr "解析後的帳戶電子郵件"
+
+msgid "Resolved test mode"
+msgstr "解析後的測試模式"
+
+msgid "Resolved deploy profile"
+msgstr "解析後的部署設定"
+
+msgid "Resolved target"
+msgstr "解析後的目標"
+
+msgid "Resolved source"
+msgstr "解析後的來源"
+
+msgid "Resolved reload command"
+msgstr "解析後的重新載入指令"
+
+msgid "Core version"
+msgstr "核心版本"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Current core version"
+msgstr "目前核心版本"
+
+msgid "Select deploy profile"
+msgstr "選擇部署設定"
+
+msgid "AWS Session Token"
+msgstr "AWS 會話令牌"
+
+msgid "Certificate key type"
+msgstr "憑證金鑰類型"
+
+msgid "Global test mode"
+msgstr "全域測試模式"
+
+msgid "disabled"
+msgstr "已關閉"
+
+msgid "enabled"
+msgstr "已啟用"
+
+msgid "Invalid JSON"
+msgstr "JSON 無效"
+
+msgid "Configuration JSON must be an object"
+msgstr "設定 JSON 必須是物件"
+
+msgid "Configuration global section must be an object"
+msgstr "設定 global 段必須是物件"
+
+msgid "Account profiles must be an array"
+msgstr "帳戶設定必須是陣列"
+
+msgid "Issue profiles must be an array"
+msgstr "簽發設定必須是陣列"
+
+msgid "Deploy profiles must be an array"
+msgstr "部署設定必須是陣列"
+
+msgid "Paste configuration JSON"
+msgstr "貼上設定 JSON"
+
+msgid "No import selected"
+msgstr "尚未選擇匯入內容"
+
+msgid "Imported configuration summary"
+msgstr "匯入設定摘要"
+
+msgid "Unable to read selected file"
+msgstr "無法讀取所選檔案"
+
+msgid "Configuration migration"
+msgstr "設定移轉"
+
+msgid "This export contains sensitive DNS credentials and certificate material."
+msgstr "匯出內容包含敏感 DNS 憑證和憑證資料。"
+
+msgid "Export configuration"
+msgstr "匯出設定"
+
+msgid "Download a full migration JSON for server changes, reinstallations, or version upgrades."
+msgstr "下載完整移轉 JSON，用於切換伺服器、重新安裝或版本升級。"
+
+msgid "Import configuration"
+msgstr "匯入設定"
+
+msgid "Configuration file"
+msgstr "設定檔案"
+
+msgid "Preview import"
+msgstr "預覽匯入"
+
+msgid "Configuration imported"
+msgstr "設定已匯入"
+
+msgid "Overwrite current configuration"
+msgstr "覆寫目前設定"
+
+msgid "The SSH private key is in OpenSSH format, but this router is using Dropbear. Convert it temporarily and retry the deployment."
+msgstr "SSH 私密金鑰是 OpenSSH 格式，但目前路由器使用 Dropbear。請暫時轉換後重試部署。"
+
+msgid "Convert SSH key and retry deployment?"
+msgstr "轉換 SSH 私密金鑰並重試部署？"
+
+msgid "The converted key will be used only for this deployment and deleted afterwards."
+msgstr "轉換後的私密金鑰只會用於本次部署，執行結束後會自動刪除。"
+
+msgid "Remote sudo requires passwordless sudo. Configure NOPASSWD for the deploy user or deploy as root."
+msgstr "遠端 sudo 需要免密權限。請為部署使用者設定 NOPASSWD，或改用 root 使用者部署。"
+
+msgid "The plugin will execute the operation strictly according to the parameters above. By continuing, you confirm that you have reviewed and accept the consequences of certificate issuance quotas, remote file overwrite, service reload, and target system configuration."
+msgstr "插件將嚴格按照上方參數執行操作。繼續即表示您已核對並接受憑證簽發配額、遠端檔案覆寫、服務重新載入及目標系統設定產生的結果。"
+
+msgid "Risk authorization required"
+msgstr "需要風險授權"
+
+msgid "Review the exact material operation before continuing."
+msgstr "繼續前請核對本次操作的關鍵參數。"
+
+msgid "Run once"
+msgstr "僅執行一次"
+
+msgid "Run and remember"
+msgstr "執行並記住授權"
+
+msgid "Authorized"
+msgstr "已授權"
+
+msgid "Authorization records"
+msgstr "授權紀錄"
+
+msgid "Revoke"
+msgstr "撤銷"
+
+msgid "Revoke all"
+msgstr "全部撤銷"
+
+msgid "Subject"
+msgstr "物件"
+
+msgid "Scope"
+msgstr "範圍"
+
+msgid "Granted"
+msgstr "授權時間"
+
+msgid "Last used"
+msgstr "最後使用"
+
+msgid "Uses"
+msgstr "使用次數"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "No authorization records"
+msgstr "沒有授權紀錄"
+
+msgid "SSH host key changed"
+msgstr "SSH 主機金鑰已變更"
+
+msgid "The SSH host identity changed. Deployment is blocked. Verify the host outside this operation before replacing the pinned identity."
+msgstr "SSH 主機身份已變更，部署已阻止。請先獨立核驗主機，再更換固定的主機身份。"
+
+msgid "Confirm SSH host identity"
+msgstr "確認 SSH 主機身份"
+
+msgid "Key algorithm"
+msgstr "金鑰算法"
+
+msgid "Fingerprint"
+msgstr "指纹"
+
+msgid "Confirm and pin"
+msgstr "確認並固定"
+
+msgid "Revoke certificate"
+msgstr "撤銷憑證"
+
+msgid "Remove certificate"
+msgstr "移除憑證"
+
+msgid "Unable to delete profile"
+msgstr "無法刪除設定檔案"
+
+msgid "SAN list"
+msgstr "SAN 列表"
+
+msgid "DNS challenge alias (optional)"
+msgstr "DNS 挑战別名（可選）"
+
+msgid "DNS propagation delay (seconds)"
+msgstr "DNS 傳播等待時間（秒）"
+
+msgid "Test this core action"
+msgstr "測試本次核心操作"
+
+msgid "Explicit profile policy"
+msgstr "設定檔案的顯式原則"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Host"
+msgstr "主機"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Unable to load configuration"
+msgstr "無法載入設定"
+
+msgid "Saving defaults"
+msgstr "正在儲存預設設置"

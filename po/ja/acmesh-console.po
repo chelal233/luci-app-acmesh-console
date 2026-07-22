@@ -1,0 +1,1210 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-acmesh-console\n"
+"PO-Revision-Date: 2026-07-23 00:00+0800\n"
+"Last-Translator: acmesh-console maintainers\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "acme.sh Console"
+msgstr "acme.sh コンソール"
+
+msgid "Certificates"
+msgstr "証明書"
+
+msgid "Operations"
+msgstr "操作"
+
+msgid "Logs"
+msgstr "ログ"
+
+msgid "Core & Defaults"
+msgstr "コアと既定値"
+
+msgid "Default account email"
+msgstr "既定のアカウントメール"
+
+msgid "Global Test Mode"
+msgstr "グローバルテストモード"
+
+msgid "Enable by default"
+msgstr "既定で有効"
+
+msgid "ACME home"
+msgstr "ACME ホーム"
+
+msgid "Core tag candidates"
+msgstr "コアタグ候補"
+
+msgid "Save defaults"
+msgstr "既定値を保存"
+
+msgid "Install selected tag"
+msgstr "選択したタグをインストール"
+
+msgid "Upgrade selected tag"
+msgstr "選択したタグへ更新"
+
+msgid "Installed"
+msgstr "インストール済み"
+
+msgid "Script"
+msgstr "スクリプト"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Accounts"
+msgstr "アカウント"
+
+msgid "Account profiles"
+msgstr "アカウントプロファイル"
+
+msgid "Issue Profiles"
+msgstr "発行プロファイル"
+
+msgid "Deploy Profiles"
+msgstr "デプロイプロファイル"
+
+msgid "Issue profiles"
+msgstr "発行プロファイル"
+
+msgid "Deploy profiles"
+msgstr "デプロイプロファイル"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Domain"
+msgstr "ドメイン"
+
+msgid "Account"
+msgstr "アカウント"
+
+msgid "Deploy"
+msgstr "デプロイ"
+
+msgid "Validation"
+msgstr "検証"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Type"
+msgstr "種類"
+
+msgid "Certificate source"
+msgstr "証明書のソース"
+
+msgid "Target"
+msgstr "対象"
+
+msgid "Reload command"
+msgstr "再読み込みコマンド"
+
+msgid "Run"
+msgstr "実行"
+
+msgid "DNS Test"
+msgstr "DNS テスト"
+
+msgid "Test"
+msgstr "テスト"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Ignore"
+msgstr "無視"
+
+msgid "Save account"
+msgstr "アカウントを保存"
+
+msgid "Save issue profile"
+msgstr "発行プロファイルを保存"
+
+msgid "Save deploy profile"
+msgstr "デプロイプロファイルを保存"
+
+msgid "Task output"
+msgstr "タスク出力"
+
+msgid "Summary"
+msgstr "概要"
+
+msgid "Creating task"
+msgstr "タスクを作成中"
+
+msgid "Issue succeeded; starting deploy profile"
+msgstr "証明書の発行に成功しました。デプロイプロファイルを開始します"
+
+msgid "The CA rejected the account email. Replace example.com with a real mailbox in the account profile or defaults."
+msgstr "CA がアカウントメールを拒否しました。アカウントプロファイルまたは既定値で example.com を実在するメールアドレスに置き換えてください。"
+
+msgid "The DNS provider rejected the TXT record. Check that the domain belongs to this DNS account and that the selected DNS API credentials match the provider."
+msgstr "DNS プロバイダーが TXT レコードを拒否しました。ドメインがこの DNS アカウントに属すること、および選択した DNS API 認証情報がプロバイダーと一致することを確認してください。"
+
+msgid "The DNS provider failed to create the ACME TXT record. Recheck DNS API credentials, zone ownership, and provider-specific permissions."
+msgstr "DNS プロバイダーが ACME TXT レコードを作成できませんでした。DNS API 認証情報、ゾーンの所有権、プロバイダー固有の権限を再確認してください。"
+
+msgid "OpenSSL is missing on the router. Install openssl-util before installing or upgrading acme.sh."
+msgstr "ルーターに OpenSSL がありません。acme.sh をインストールまたは更新する前に openssl-util をインストールしてください。"
+
+msgid "acme.sh is not installed in the configured ACME home. Install the selected core tag first."
+msgstr "設定された ACME ホームに acme.sh がインストールされていません。先に選択したコアタグをインストールしてください。"
+
+msgid "The selected CA value is not supported by the backend. Choose a known CA profile or a valid ACME directory URL."
+msgstr "選択した CA 値はバックエンドでサポートされていません。既知の CA プロファイルまたは有効な ACME ディレクトリ URL を選択してください。"
+
+msgid "No entries"
+msgstr "項目はありません"
+
+msgid "No account profiles"
+msgstr "アカウントプロファイルはありません"
+
+msgid "No issue profiles"
+msgstr "発行プロファイルはありません"
+
+msgid "Imported"
+msgstr "インポート済み"
+
+msgid "Imported issue profiles"
+msgstr "インポートした発行プロファイル"
+
+msgid "No deploy profiles"
+msgstr "デプロイプロファイルはありません"
+
+msgid "No deploy profile"
+msgstr "デプロイプロファイルなし"
+
+msgid "No account profile"
+msgstr "アカウントプロファイルなし"
+
+msgid "Email overlay"
+msgstr "メールの上書き"
+
+msgid "Effective email"
+msgstr "有効なメール"
+
+msgid "inherit default"
+msgstr "既定値を継承"
+
+msgid "CA / environment"
+msgstr "CA / 環境"
+
+msgid "Account email overlay"
+msgstr "アカウントメールの上書き"
+
+msgid "Test mode policy"
+msgstr "テストモードのポリシー"
+
+msgid "Inherit Global Test Mode"
+msgstr "グローバルテストモードを継承"
+
+msgid "Always Test Mode"
+msgstr "常にテストモード"
+
+msgid "Always Real Mode"
+msgstr "常に実運用モード"
+
+msgid "DNS provider"
+msgstr "DNS プロバイダー"
+
+msgid "Custom DNS API"
+msgstr "カスタム DNS API"
+
+msgid "Official DNS API filter"
+msgstr "公式 DNS API フィルター"
+
+msgid "Official DNS API candidates"
+msgstr "公式 DNS API 候補"
+
+msgid "Select official DNS API"
+msgstr "公式 DNS API を選択"
+
+msgid "Credential mode"
+msgstr "認証情報モード"
+
+msgid "Custom credential env"
+msgstr "カスタム認証情報の環境変数"
+
+msgid "Custom credential value"
+msgstr "カスタム認証情報の値"
+
+msgid "Custom credentials"
+msgstr "カスタム認証情報"
+
+msgid "Missing DNS credentials"
+msgstr "DNS 認証情報が不足しています"
+
+msgid "Domain is required"
+msgstr "ドメインは必須です"
+
+msgid "Issued certificate"
+msgstr "発行済み証明書"
+
+msgid "Local certificate files"
+msgstr "ローカル証明書ファイル"
+
+msgid "Paste PEM content"
+msgstr "PEM 内容を貼り付け"
+
+msgid "Use issued certificate"
+msgstr "発行済み証明書を使用"
+
+msgid "Use local certificate files"
+msgstr "ローカル証明書ファイルを使用"
+
+msgid "Certificate domain"
+msgstr "証明書のドメイン"
+
+msgid "Source key file"
+msgstr "ソース秘密鍵ファイル"
+
+msgid "Source fullchain file"
+msgstr "ソース完全証明書チェーンファイル"
+
+msgid "Private key PEM"
+msgstr "秘密鍵 PEM"
+
+msgid "Fullchain PEM"
+msgstr "完全証明書チェーン PEM"
+
+msgid "SSH host"
+msgstr "SSH ホスト"
+
+msgid "SSH user"
+msgstr "SSH ユーザー"
+
+msgid "SSH port"
+msgstr "SSH ポート"
+
+msgid "SSH private key"
+msgstr "SSH 秘密鍵"
+
+msgid "Key file"
+msgstr "鍵ファイル"
+
+msgid "Fullchain file"
+msgstr "完全証明書チェーンファイル"
+
+msgid "Local key file"
+msgstr "ローカル鍵ファイル"
+
+msgid "Local fullchain file"
+msgstr "ローカル完全証明書チェーンファイル"
+
+msgid "Remote key file"
+msgstr "リモート鍵ファイル"
+
+msgid "Remote fullchain file"
+msgstr "リモート完全証明書チェーンファイル"
+
+msgid "Local install"
+msgstr "ローカルインストール"
+
+msgid "Remote SSH"
+msgstr "リモート SSH"
+
+msgid "Cloudflare"
+msgstr "Cloudflare"
+
+msgid "Token"
+msgstr "トークン"
+
+msgid "Global Key"
+msgstr "グローバルキー"
+
+msgid "Cloudflare API Token"
+msgstr "Cloudflare API トークン"
+
+msgid "Cloudflare Zone ID"
+msgstr "Cloudflare ゾーン ID"
+
+msgid "Cloudflare Account ID"
+msgstr "Cloudflare アカウント ID"
+
+msgid "Cloudflare Email"
+msgstr "Cloudflare メール"
+
+msgid "Cloudflare Global API Key"
+msgstr "Cloudflare グローバル API キー"
+
+msgid "Aliyun"
+msgstr "Alibaba Cloud"
+
+msgid "AccessKey"
+msgstr "AccessKey"
+
+msgid "Aliyun AccessKey ID"
+msgstr "Alibaba Cloud AccessKey ID"
+
+msgid "Aliyun AccessKey Secret"
+msgstr "Alibaba Cloud AccessKey Secret"
+
+msgid "DNSPod.cn"
+msgstr "DNSPod.cn"
+
+msgid "DNSPod ID"
+msgstr "DNSPod ID"
+
+msgid "DNSPod Token"
+msgstr "DNSPod トークン"
+
+msgid "Tencent Cloud DNSPod"
+msgstr "Tencent Cloud DNSPod"
+
+msgid "SecretId / SecretKey"
+msgstr "SecretId / SecretKey"
+
+msgid "Tencent SecretId"
+msgstr "Tencent SecretId"
+
+msgid "Tencent SecretKey"
+msgstr "Tencent SecretKey"
+
+msgid "DuckDNS"
+msgstr "DuckDNS"
+
+msgid "DuckDNS Token"
+msgstr "DuckDNS トークン"
+
+msgid "dynv6"
+msgstr "dynv6"
+
+msgid "dynv6 Token"
+msgstr "dynv6 トークン"
+
+msgid "SSH Key"
+msgstr "SSH 鍵"
+
+msgid "dynv6 SSH private key path"
+msgstr "dynv6 SSH 秘密鍵のパス"
+
+msgid "GoDaddy"
+msgstr "GoDaddy"
+
+msgid "Key / Secret"
+msgstr "キー / シークレット"
+
+msgid "GoDaddy Key"
+msgstr "GoDaddy キー"
+
+msgid "GoDaddy Secret"
+msgstr "GoDaddy シークレット"
+
+msgid "Amazon Route 53"
+msgstr "Amazon Route 53"
+
+msgid "Access Key"
+msgstr "アクセスキー"
+
+msgid "AWS Access Key ID"
+msgstr "AWS アクセスキー ID"
+
+msgid "AWS Secret Access Key"
+msgstr "AWS シークレットアクセスキー"
+
+msgid "AWS DNS slow rate"
+msgstr "AWS DNS 低速レート"
+
+msgid "Baidu Cloud DNS"
+msgstr "Baidu Cloud DNS"
+
+msgid "Baidu Access Key ID"
+msgstr "Baidu アクセスキー ID"
+
+msgid "Baidu Secret Access Key"
+msgstr "Baidu シークレットアクセスキー"
+
+msgid "Baidu API preference"
+msgstr "Baidu API 設定"
+
+msgid "Baidu DNS view"
+msgstr "Baidu DNS ビュー"
+
+msgid "Baidu DNS line"
+msgstr "Baidu DNS 回線"
+
+msgid "Azure DNS"
+msgstr "Azure DNS"
+
+msgid "Service Principal"
+msgstr "サービスプリンシパル"
+
+msgid "Azure Subscription ID"
+msgstr "Azure サブスクリプション ID"
+
+msgid "Azure Tenant ID"
+msgstr "Azure テナント ID"
+
+msgid "Azure App ID"
+msgstr "Azure アプリ ID"
+
+msgid "Azure Client Secret"
+msgstr "Azure クライアントシークレット"
+
+msgid "Bearer Token"
+msgstr "Bearer トークン"
+
+msgid "Azure Bearer Token"
+msgstr "Azure Bearer トークン"
+
+msgid "Managed Identity"
+msgstr "マネージド ID"
+
+msgid "Use Azure Managed Identity"
+msgstr "Azure マネージド ID を使用"
+
+msgid "ClouDNS"
+msgstr "ClouDNS"
+
+msgid "Regular Auth ID"
+msgstr "通常の Auth ID"
+
+msgid "ClouDNS Auth ID"
+msgstr "ClouDNS Auth ID"
+
+msgid "ClouDNS Auth Password"
+msgstr "ClouDNS Auth パスワード"
+
+msgid "Sub Auth ID"
+msgstr "サブ Auth ID"
+
+msgid "ClouDNS Sub Auth ID"
+msgstr "ClouDNS サブ Auth ID"
+
+msgid "Hurricane Electric"
+msgstr "Hurricane Electric"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "HE Username"
+msgstr "HE ユーザー名"
+
+msgid "HE Password"
+msgstr "HE パスワード"
+
+msgid "Huawei Cloud DNS"
+msgstr "Huawei Cloud DNS"
+
+msgid "Username / Password"
+msgstr "ユーザー名 / パスワード"
+
+msgid "Huawei Cloud Username"
+msgstr "Huawei Cloud ユーザー名"
+
+msgid "Huawei Cloud Password"
+msgstr "Huawei Cloud パスワード"
+
+msgid "Huawei Cloud Domain Name"
+msgstr "Huawei Cloud ドメイン名"
+
+msgid "Huawei Cloud Region"
+msgstr "Huawei Cloud リージョン"
+
+msgid "Gcore DNS"
+msgstr "Gcore DNS"
+
+msgid "Gcore API Key"
+msgstr "Gcore API キー"
+
+msgid "Namecheap"
+msgstr "Namecheap"
+
+msgid "API Key"
+msgstr "API キー"
+
+msgid "Namecheap Username"
+msgstr "Namecheap ユーザー名"
+
+msgid "Namecheap API Key"
+msgstr "Namecheap API キー"
+
+msgid "Namecheap Source IP"
+msgstr "Namecheap ソース IP"
+
+msgid "DNS.LA"
+msgstr "DNS.LA"
+
+msgid "ID / Secret"
+msgstr "ID / シークレット"
+
+msgid "DNS.LA API ID"
+msgstr "DNS.LA API ID"
+
+msgid "DNS.LA API Secret"
+msgstr "DNS.LA API シークレット"
+
+msgid "DNS.LA API Token"
+msgstr "DNS.LA API トークン"
+
+msgid "Name.com"
+msgstr "Name.com"
+
+msgid "API Token"
+msgstr "API トークン"
+
+msgid "Name.com Username"
+msgstr "Name.com ユーザー名"
+
+msgid "Name.com API Token"
+msgstr "Name.com API トークン"
+
+msgid "NameSilo"
+msgstr "NameSilo"
+
+msgid "NameSilo API Key"
+msgstr "NameSilo API キー"
+
+msgid "IBM NS1 Connect"
+msgstr "IBM NS1 Connect"
+
+msgid "NS1 API Key"
+msgstr "NS1 API キー"
+
+msgid "Porkbun"
+msgstr "Porkbun"
+
+msgid "Porkbun API Key"
+msgstr "Porkbun API キー"
+
+msgid "Porkbun Secret API Key"
+msgstr "Porkbun Secret API キー"
+
+msgid "Volcengine DNS"
+msgstr "Volcengine DNS"
+
+msgid "Volcengine Access Key ID"
+msgstr "Volcengine アクセスキー ID"
+
+msgid "Volcengine Secret Access Key"
+msgstr "Volcengine シークレットアクセスキー"
+
+msgid "Volcengine Session Token"
+msgstr "Volcengine セッショントークン"
+
+msgid "Spaceship"
+msgstr "Spaceship"
+
+msgid "Spaceship API Key"
+msgstr "Spaceship API キー"
+
+msgid "Spaceship API Secret"
+msgstr "Spaceship API シークレット"
+
+msgid "Spaceship root domain"
+msgstr "Spaceship ルートドメイン"
+
+msgid "Vercel"
+msgstr "Vercel"
+
+msgid "Vercel API Token"
+msgstr "Vercel API トークン"
+
+msgid "Linode"
+msgstr "Linode"
+
+msgid "Linode API Key"
+msgstr "Linode API キー"
+
+msgid "DigitalOcean"
+msgstr "DigitalOcean"
+
+msgid "DigitalOcean API Token"
+msgstr "DigitalOcean API トークン"
+
+msgid "Google Cloud DNS"
+msgstr "Google Cloud DNS"
+
+msgid "gcloud"
+msgstr "gcloud"
+
+msgid "gcloud active config"
+msgstr "gcloud のアクティブ設定"
+
+msgid "Zonomi"
+msgstr "Zonomi"
+
+msgid "Zonomi API Key"
+msgstr "Zonomi API キー"
+
+msgid "Invalid backend response"
+msgstr "無効なバックエンド応答"
+
+msgid "Unable to save config"
+msgstr "設定を保存できません"
+
+msgid "Unable to create task"
+msgstr "タスクを作成できません"
+
+msgid "Task Logs"
+msgstr "タスクログ"
+
+msgid "View task"
+msgstr "タスクを表示"
+
+msgid "Refresh"
+msgstr "更新"
+
+msgid "Task ID"
+msgstr "タスク ID"
+
+msgid "Operation"
+msgstr "操作"
+
+msgid "Stage"
+msgstr "ステージ"
+
+msgid "Exit"
+msgstr "終了コード"
+
+msgid "No tasks found"
+msgstr "タスクが見つかりません"
+
+msgid "Loading task"
+msgstr "タスクを読み込み中"
+
+msgid "Back to tasks"
+msgstr "タスク一覧に戻る"
+
+msgid "acme.sh home"
+msgstr "acme.sh ホーム"
+
+msgid "Core script"
+msgstr "コアスクリプト"
+
+msgid "Not installed"
+msgstr "未インストール"
+
+msgid "Core tag"
+msgstr "コアタグ"
+
+msgid "Mode"
+msgstr "モード"
+
+msgid "Real"
+msgstr "実運用"
+
+msgid "OpenSSL"
+msgstr "OpenSSL"
+
+msgid "Ready"
+msgstr "準備完了"
+
+msgid "Missing"
+msgstr "不足"
+
+msgid "View certificate"
+msgstr "証明書を表示"
+
+msgid "Renew"
+msgstr "更新"
+
+msgid "Import history"
+msgstr "履歴をインポート"
+
+msgid "Key type"
+msgstr "鍵の種類"
+
+msgid "Primary"
+msgstr "プライマリ"
+
+msgid "SAN"
+msgstr "SAN"
+
+msgid "Config"
+msgstr "設定"
+
+msgid "No certificates found"
+msgstr "証明書が見つかりません"
+
+msgid "Back to certificates"
+msgstr "証明書一覧に戻る"
+
+msgid "Field"
+msgstr "フィールド"
+
+msgid "Value"
+msgstr "値"
+
+msgid "No certificate details"
+msgstr "証明書の詳細はありません"
+
+msgid "Native variables"
+msgstr "ネイティブ変数"
+
+msgid "Last action"
+msgstr "最後の操作"
+
+msgid "Missing openssl. Install it first: apk add openssl-util, or opkg update && opkg install openssl-util."
+msgstr "openssl がありません。先にインストールしてください: apk add openssl-util、または opkg update && opkg install openssl-util。"
+
+msgid "Missing downloader. Install curl or wget before installing acme.sh."
+msgstr "ダウンローダーがありません。acme.sh をインストールする前に curl または wget をインストールしてください。"
+
+msgid "Unable to create install task"
+msgstr "インストールタスクを作成できません"
+
+msgid "Unable to create upgrade task"
+msgstr "更新タスクを作成できません"
+
+msgid "acme.sh Core"
+msgstr "acme.sh コア"
+
+msgid "Detect core"
+msgstr "コアを検出"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Downloader"
+msgstr "ダウンローダー"
+
+msgid "Account email"
+msgstr "アカウントメール"
+
+msgid "acme.sh tag"
+msgstr "acme.sh タグ"
+
+msgid "Test mode"
+msgstr "テストモード"
+
+msgid "Install core"
+msgstr "コアをインストール"
+
+msgid "Upgrade core"
+msgstr "コアを更新"
+
+msgid "Core status"
+msgstr "コア状態"
+
+msgid "Task"
+msgstr "タスク"
+
+msgid "Unable to parse acme.sh Console status output"
+msgstr "acme.sh コンソールの状態出力を解析できません"
+
+msgid "Importing acme.sh history"
+msgstr "acme.sh 履歴をインポート中"
+
+msgid "Unable to create import task"
+msgstr "インポートタスクを作成できません"
+
+msgid "Issue certificate"
+msgstr "証明書を発行"
+
+msgid "Backend"
+msgstr "バックエンド"
+
+msgid "Error"
+msgstr "エラー"
+
+msgid "No certificates found in acme.sh home."
+msgstr "acme.sh ホームに証明書が見つかりません。"
+
+msgid "Unable to create deploy test task"
+msgstr "デプロイテストタスクを作成できません"
+
+msgid "Generating SSH key"
+msgstr "SSH 鍵を生成中"
+
+msgid "Unable to generate SSH key"
+msgstr "SSH 鍵を生成できません"
+
+msgid "Public key copied"
+msgstr "公開鍵をコピーしました"
+
+msgid "Unable to create SSH test task"
+msgstr "SSH テストタスクを作成できません"
+
+msgid "Deploy & Post-Action"
+msgstr "デプロイと後処理"
+
+msgid "Cert file"
+msgstr "証明書ファイル"
+
+msgid "CA file"
+msgstr "CA ファイル"
+
+msgid "Preview install-cert"
+msgstr "install-cert をプレビュー"
+
+msgid "Run deploy test"
+msgstr "デプロイテストを実行"
+
+msgid "Target host"
+msgstr "対象ホスト"
+
+msgid "Private key path"
+msgstr "秘密鍵のパス"
+
+msgid "Remote key path"
+msgstr "リモート鍵のパス"
+
+msgid "Remote fullchain path"
+msgstr "リモート完全証明書チェーンのパス"
+
+msgid "Remote reload command"
+msgstr "リモート再読み込みコマンド"
+
+msgid "Generate SSH key"
+msgstr "SSH 鍵を生成"
+
+msgid "Copy public key"
+msgstr "公開鍵をコピー"
+
+msgid "Preview SSH deploy"
+msgstr "SSH デプロイをプレビュー"
+
+msgid "Test SSH connection"
+msgstr "SSH 接続をテスト"
+
+msgid "Public key"
+msgstr "公開鍵"
+
+msgid "Custom dns_xxx"
+msgstr "カスタム dns_xxx"
+
+msgid "Issue flow"
+msgstr "発行フロー"
+
+msgid "Compose"
+msgstr "作成"
+
+msgid "Preview"
+msgstr "プレビュー"
+
+msgid "Result"
+msgstr "結果"
+
+msgid "Unable to create issue task"
+msgstr "発行タスクを作成できません"
+
+msgid "Issue task created"
+msgstr "発行タスクを作成しました"
+
+msgid "Issue Certificate"
+msgstr "証明書を発行"
+
+msgid "Custom ACME server"
+msgstr "カスタム ACME サーバー"
+
+msgid "Validation method"
+msgstr "検証方法"
+
+msgid "DNS credentials"
+msgstr "DNS 認証情報"
+
+msgid "Webroot"
+msgstr "Webroot"
+
+msgid "Listen port"
+msgstr "待受ポート"
+
+msgid "Preview command"
+msgstr "コマンドをプレビュー"
+
+msgid "Command preview"
+msgstr "コマンドプレビュー"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "CA"
+msgstr "CA"
+
+msgid "Edit account"
+msgstr "アカウントを編集"
+
+msgid "new"
+msgstr "新規"
+
+msgid "secret"
+msgstr "シークレット"
+
+msgid "Edit issue profile"
+msgstr "発行プロファイルを編集"
+
+msgid "Account profile"
+msgstr "アカウントプロファイル"
+
+msgid "Deploy profile"
+msgstr "デプロイプロファイル"
+
+msgid "Edit deploy profile"
+msgstr "デプロイプロファイルを編集"
+
+msgid "Settings & Diagnostics"
+msgstr "設定と診断"
+
+msgid "Package manager"
+msgstr "パッケージマネージャー"
+
+msgid "Account config"
+msgstr "アカウント設定"
+
+msgid "Found"
+msgstr "検出済み"
+
+msgid "Detect runtime"
+msgstr "実行環境を検出"
+
+msgid "Runtime JSON"
+msgstr "実行環境 JSON"
+
+msgid "Missing deploy fields"
+msgstr "デプロイ項目が不足しています"
+
+msgid "Account email is required for real mode"
+msgstr "実運用モードではアカウントメールが必要です"
+
+msgid "Inherit default"
+msgstr "既定値を継承"
+
+msgid "Override"
+msgstr "上書き"
+
+msgid "Effective configuration"
+msgstr "有効な設定"
+
+msgid "Account email source"
+msgstr "アカウントメールのソース"
+
+msgid "Resolved account email"
+msgstr "解決後のアカウントメール"
+
+msgid "Resolved test mode"
+msgstr "解決後のテストモード"
+
+msgid "Resolved deploy profile"
+msgstr "解決後のデプロイプロファイル"
+
+msgid "Resolved target"
+msgstr "解決後の対象"
+
+msgid "Resolved source"
+msgstr "解決後のソース"
+
+msgid "Resolved reload command"
+msgstr "解決後の再読み込みコマンド"
+
+msgid "Core version"
+msgstr "コアバージョン"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Current core version"
+msgstr "現在のコアバージョン"
+
+msgid "Select deploy profile"
+msgstr "デプロイプロファイルを選択"
+
+msgid "AWS Session Token"
+msgstr "AWS セッショントークン"
+
+msgid "Certificate key type"
+msgstr "証明書の鍵タイプ"
+
+msgid "Global test mode"
+msgstr "グローバルテストモード"
+
+msgid "disabled"
+msgstr "無効"
+
+msgid "enabled"
+msgstr "有効"
+
+msgid "Invalid JSON"
+msgstr "無効な JSON"
+
+msgid "Configuration JSON must be an object"
+msgstr "設定 JSON はオブジェクトである必要があります"
+
+msgid "Configuration global section must be an object"
+msgstr "設定の global セクションはオブジェクトである必要があります"
+
+msgid "Account profiles must be an array"
+msgstr "アカウントプロファイルは配列である必要があります"
+
+msgid "Issue profiles must be an array"
+msgstr "発行プロファイルは配列である必要があります"
+
+msgid "Deploy profiles must be an array"
+msgstr "デプロイプロファイルは配列である必要があります"
+
+msgid "Paste configuration JSON"
+msgstr "設定 JSON を貼り付け"
+
+msgid "No import selected"
+msgstr "インポートする内容が選択されていません"
+
+msgid "Imported configuration summary"
+msgstr "インポートした設定の概要"
+
+msgid "Unable to read selected file"
+msgstr "選択したファイルを読み取れません"
+
+msgid "Configuration migration"
+msgstr "設定の移行"
+
+msgid "This export contains sensitive DNS credentials and certificate material."
+msgstr "このエクスポートには機密性の高い DNS 認証情報と証明書データが含まれます。"
+
+msgid "Export configuration"
+msgstr "設定をエクスポート"
+
+msgid "Download a full migration JSON for server changes, reinstallations, or version upgrades."
+msgstr "サーバー変更、再インストール、バージョン更新用の完全な移行 JSON をダウンロードします。"
+
+msgid "Import configuration"
+msgstr "設定をインポート"
+
+msgid "Configuration file"
+msgstr "設定ファイル"
+
+msgid "Preview import"
+msgstr "インポートをプレビュー"
+
+msgid "Configuration imported"
+msgstr "設定をインポートしました"
+
+msgid "Overwrite current configuration"
+msgstr "現在の設定を上書き"
+
+msgid "The SSH private key is in OpenSSH format, but this router is using Dropbear. Convert it temporarily and retry the deployment."
+msgstr "SSH 秘密鍵は OpenSSH 形式ですが、このルーターは Dropbear を使用しています。一時的に変換してデプロイを再試行してください。"
+
+msgid "Convert SSH key and retry deployment?"
+msgstr "SSH 鍵を変換してデプロイを再試行しますか？"
+
+msgid "The converted key will be used only for this deployment and deleted afterwards."
+msgstr "変換した鍵はこのデプロイだけに使用され、終了後に削除されます。"
+
+msgid "Remote sudo requires passwordless sudo. Configure NOPASSWD for the deploy user or deploy as root."
+msgstr "リモート sudo にはパスワード不要の sudo が必要です。デプロイユーザーに NOPASSWD を設定するか、root としてデプロイしてください。"
+
+msgid "The plugin will execute the operation strictly according to the parameters above. By continuing, you confirm that you have reviewed and accept the consequences of certificate issuance quotas, remote file overwrite, service reload, and target system configuration."
+msgstr "プラグインは上記のパラメーターに従って厳密に操作を実行します。続行すると、証明書発行の上限、リモートファイルの上書き、サービスの再読み込み、対象システムの設定による影響を確認し、受け入れたものとみなされます。"
+
+msgid "Risk authorization required"
+msgstr "リスク承認が必要です"
+
+msgid "Review the exact material operation before continuing."
+msgstr "続行する前に、実行される重要な操作を確認してください。"
+
+msgid "Run once"
+msgstr "今回のみ実行"
+
+msgid "Run and remember"
+msgstr "実行して承認を記憶"
+
+msgid "Authorized"
+msgstr "承認済み"
+
+msgid "Authorization records"
+msgstr "承認記録"
+
+msgid "Revoke"
+msgstr "取り消す"
+
+msgid "Revoke all"
+msgstr "すべて取り消す"
+
+msgid "Subject"
+msgstr "対象"
+
+msgid "Scope"
+msgstr "範囲"
+
+msgid "Granted"
+msgstr "承認日時"
+
+msgid "Last used"
+msgstr "最終使用"
+
+msgid "Uses"
+msgstr "使用回数"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "No authorization records"
+msgstr "承認記録はありません"
+
+msgid "SSH host key changed"
+msgstr "SSH ホスト鍵が変更されました"
+
+msgid "The SSH host identity changed. Deployment is blocked. Verify the host outside this operation before replacing the pinned identity."
+msgstr "SSH ホストの識別情報が変更されたため、デプロイはブロックされました。固定した識別情報を置き換える前に、この操作とは別にホストを確認してください。"
+
+msgid "Confirm SSH host identity"
+msgstr "SSH ホストの識別情報を確認"
+
+msgid "Key algorithm"
+msgstr "鍵アルゴリズム"
+
+msgid "Fingerprint"
+msgstr "フィンガープリント"
+
+msgid "Confirm and pin"
+msgstr "確認して固定"
+
+msgid "Revoke certificate"
+msgstr "証明書を失効"
+
+msgid "Remove certificate"
+msgstr "証明書を削除"
+
+msgid "Unable to delete profile"
+msgstr "プロファイルを削除できません"
+
+msgid "SAN list"
+msgstr "SAN リスト"
+
+msgid "DNS challenge alias (optional)"
+msgstr "DNS チャレンジ別名（任意）"
+
+msgid "DNS propagation delay (seconds)"
+msgstr "DNS 伝播待機時間（秒）"
+
+msgid "Test this core action"
+msgstr "このコア操作をテスト"
+
+msgid "Explicit profile policy"
+msgstr "プロファイルの明示的ポリシー"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Host"
+msgstr "ホスト"
+
+msgid "Port"
+msgstr "ポート"
+
+msgid "Unable to load configuration"
+msgstr "設定を読み込めません"
+
+msgid "Saving defaults"
+msgstr "既定値を保存中"
