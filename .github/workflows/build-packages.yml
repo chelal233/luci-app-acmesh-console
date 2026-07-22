@@ -79,6 +79,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Prepare standalone feed layout
+        run: |
+          set -euo pipefail
+          feed_dir="$RUNNER_TEMP/acmesh-console-feed"
+          package_dir="$feed_dir/$PACKAGE_NAME"
+          mkdir -p "$package_dir"
+          git archive HEAD | tar -x -C "$package_dir"
+          echo "FEED_DIR=$feed_dir" >> "$GITHUB_ENV"
+
       - name: Build with the OpenWrt SDK
         uses: openwrt/gh-action-sdk@797d0e3d0eb13b355c3447f60d0179d4b43089e2
         env:
