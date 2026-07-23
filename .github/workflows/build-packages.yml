@@ -195,13 +195,11 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" release/* --clobber
-          else
-            gh release create "$TAG" release/* \
-              --title "luci-app-acmesh-console $VERSION" \
-              --generate-notes
+            gh release delete "$TAG" --yes
           fi
-          gh release edit "$TAG" --draft=false --prerelease=false
+          gh release create "$TAG" release/* \
+            --title "luci-app-acmesh-console $VERSION" \
+            --generate-notes
 
   publish-existing:
     name: Publish existing package artifacts
@@ -251,10 +249,8 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" release/* --clobber
-          else
-            gh release create "$TAG" release/* \
-              --title "luci-app-acmesh-console $VERSION" \
-              --generate-notes
+            gh release delete "$TAG" --yes
           fi
-          gh release edit "$TAG" --draft=false --prerelease=false
+          gh release create "$TAG" release/* \
+            --title "luci-app-acmesh-console $VERSION" \
+            --generate-notes
