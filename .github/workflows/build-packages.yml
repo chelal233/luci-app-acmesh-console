@@ -3,6 +3,15 @@ name: Build release packages
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_run_id:
+        description: "Existing workflow run ID whose package artifacts should be published"
+        required: false
+        type: string
+      release_tag:
+        description: "Existing tag to publish when publish_run_id is set"
+        required: false
+        type: string
   push:
     tags:
       - "v*"
@@ -21,6 +30,7 @@ env:
 jobs:
   metadata:
     name: Validate release metadata
+    if: inputs.publish_run_id == ''
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.package.outputs.version }}
@@ -154,6 +164,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
       - name: Download all package artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -174,6 +187,59 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
           VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+          else
+            gh release create "$TAG" release/* \
+              --title "luci-app-acmesh-console $VERSION" \
+              --generate-notes
+          fi
+
+  publish-existing:
+    name: Publish existing package artifacts
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_run_id != ''
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate release request
+        env:
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -n 1)"
+          [[ -n "$TAG" ]]
+          [[ "$TAG" == "v$version" ]]
+          git rev-parse --verify "refs/tags/$TAG^{commit}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Download existing package artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: packages-*
+          path: release
+          merge-multiple: true
+          run-id: ${{ inputs.publish_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Generate combined checksums
+        run: |
+          set -euo pipefail
+          cd release
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\0' |
+            sort -z |
+            xargs -0 sha256sum > SHA256SUMS
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
