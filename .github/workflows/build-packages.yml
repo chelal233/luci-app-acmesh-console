@@ -118,17 +118,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist bundle
-          mapfile -d '' packages < <(
+          mapfile -d '' main_packages < <(
             find bin/packages -type f \
-              \( -name "luci-app-acmesh-console-*.${FORMAT}" \
-                 -o -name "luci-i18n-acmesh-console-*.${FORMAT}" \) \
+              -name "luci-app-acmesh-console[-_]*.${FORMAT}" \
               -print0
           )
-          if (( ${#packages[@]} == 0 )); then
-            echo "No ${FORMAT} package was produced for ${ARCH}-${SDK}" >&2
+          mapfile -d '' language_packages < <(
+            find bin/packages -type f \
+              -name "luci-i18n-acmesh-console-*.${FORMAT}" \
+              -print0
+          )
+          if (( ${#main_packages[@]} != 1 || ${#language_packages[@]} != 4 )); then
+            echo "Expected 1 main package and 4 language packages for ${ARCH}-${SDK}; found ${#main_packages[@]} and ${#language_packages[@]}" >&2
             find bin/packages -maxdepth 4 -type f -print || true
             exit 1
           fi
+          packages=("${main_packages[@]}" "${language_packages[@]}")
 
           bundle_dir="bundle/${FORMAT}-${ARCH}"
           mkdir -p "$bundle_dir"
@@ -196,6 +201,7 @@ jobs:
               --title "luci-app-acmesh-console $VERSION" \
               --generate-notes
           fi
+          gh release edit "$TAG" --draft=false --prerelease=false
 
   publish-existing:
     name: Publish existing package artifacts
@@ -251,3 +257,4 @@ jobs:
               --title "luci-app-acmesh-console $VERSION" \
               --generate-notes
           fi
+          gh release edit "$TAG" --draft=false --prerelease=false
